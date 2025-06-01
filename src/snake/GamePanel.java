@@ -8,15 +8,21 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 
-public class GamePanel extends JPanel implements KeyListener {
+public class GamePanel extends JPanel implements KeyListener, MouseListener, MouseMotionListener {
     private final Game game;
     private final Timer timer;
+
 
     public GamePanel() {
         setFocusable(true);
         requestFocusInWindow();
         addKeyListener(this);
+        addMouseListener(this);
+        addMouseMotionListener(this);
 
         Board board = new Board();
         Pictures pictures = new Pictures();
@@ -52,4 +58,22 @@ public class GamePanel extends JPanel implements KeyListener {
     public void keyTyped(KeyEvent e) {
         // nieużywane
     }
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        game.onMouseClick(e.getX(), e.getY(), getWidth(), getHeight());
+    }
+
+    @Override public void mousePressed(MouseEvent e) {}
+    @Override public void mouseReleased(MouseEvent e) {}
+    @Override public void mouseEntered(MouseEvent e) {}
+    @Override public void mouseExited(MouseEvent e) {}
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        game.onMouseMove(e.getX(), e.getY(), getWidth(), getHeight());
+        repaint(); // odśwież panel aby ramka się przesunęła
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {}
 }

@@ -21,6 +21,7 @@ public class Game {
     private final int frameHeight = 120;
     private int currentMenuIndex = 0;
     private long lastKeyTime = System.currentTimeMillis();
+    private int hoveredMenuIndex = -1;
 
     public Game(Board board, Pictures pictures) {
         this.board = board;
@@ -88,35 +89,14 @@ public class Game {
     }
 
     public void onKeyPress(int keyCode) {
-        long now = System.currentTimeMillis();
         if (gameScreen == GameScreen.GAME) {
             if (keyCode == KeyEvent.VK_UP) snake.moveDirection(Direction.UP);
             if (keyCode == KeyEvent.VK_DOWN) snake.moveDirection(Direction.DOWN);
             if (keyCode == KeyEvent.VK_LEFT) snake.moveDirection(Direction.LEFT);
             if (keyCode == KeyEvent.VK_RIGHT) snake.moveDirection(Direction.RIGHT);
-        } else if (gameScreen == GameScreen.MENU) {
-            if (now - lastKeyTime > 120) {
-                if (keyCode == KeyEvent.VK_DOWN) {
-                    currentMenuIndex = (currentMenuIndex + 1) % 3;
-                    lastKeyTime = now;
-                }
-                if (keyCode == KeyEvent.VK_UP) {
-                    currentMenuIndex = (currentMenuIndex - 1 + 3) % 3;
-                    lastKeyTime = now;
-                }
-                if (keyCode == KeyEvent.VK_ENTER) {
-                    switch (currentMenuIndex) {
-                        case 0 -> gameLevel = GameLevel.EASY;
-                        case 1 -> gameLevel = GameLevel.MEDIUM;
-                        case 2 -> gameLevel = GameLevel.HARD;
-                    }
-                    snake.reset();
-                    score = 0;
-                    gameScreen = GameScreen.GAME;
-                }
-            }
         }
     }
+
 
     private void drawScore(Graphics2D g, int panelWidth) {
         g.setColor(Color.BLACK);
@@ -144,7 +124,7 @@ public class Game {
             g.setColor(Color.BLACK);
             g.drawString(text, x - textWidth / 2, y + i * gap);
 
-            if (i == currentMenuIndex) {
+            if (i == hoveredMenuIndex) {
                 pictures.drawFrame(g, x - frameWidth / 2, y + i * gap - frameHeight / 2, frameWidth, frameHeight);
             }
         }
@@ -156,4 +136,50 @@ public class Game {
         score = 0;
         gameScreen = GameScreen.MENU;
     }
+
+    public void onMouseClick(int x, int y, int panelWidth, int panelHeight) {
+        if (gameScreen == GameScreen.MENU) {
+            String[] levels = {"EASY", "MEDIUM", "HARD"};
+            int yStart = panelHeight / 4;
+
+            for (int i = 0; i < levels.length; i++) {
+                int optionY = yStart + i * gap;
+                int optionHeight = frameHeight;
+
+                // Sprawdzenie, czy kliknięto w obszar opcji
+                if (y >= optionY - optionHeight / 2 && y <= optionY + optionHeight / 2) {
+                    currentMenuIndex = i; // <--- Aktualizacja indeksu ramki
+                    switch (i) {
+                        case 0 -> gameLevel = GameLevel.EASY;
+                        case 1 -> gameLevel = GameLevel.MEDIUM;
+                        case 2 -> gameLevel = GameLevel.HARD;
+                    }
+                    snake.reset();
+                    score = 0;
+                    gameScreen = GameScreen.GAME;
+                    break;
+                }
+            }
+        }
+    }
+
+    public void onMouseMove(int mouseX, int mouseY, int panelWidth, int panelHeight) {
+        if (gameScreen == GameScreen.MENU) {
+            String[] levels = {"EASY", "MEDIUM", "HARD"};
+            int yStart = panelHeight / 4;
+
+            hoveredMenuIndex = -1;
+            for (int i = 0; i < levels.length; i++) {
+                int optionY = yStart + i * gap;
+                int optionHeight = frameHeight;
+
+                if (mouseY >= optionY - optionHeight / 2 && mouseY <= optionY + optionHeight / 2) {
+                    hoveredMenuIndex = i;
+                    break;
+                }
+            }
+        }
+    }
 }
+
+

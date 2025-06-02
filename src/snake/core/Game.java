@@ -30,6 +30,7 @@ public class Game {
     private int scrollOffset = 0;
     private boolean draggingThumb = false;
     private int dragOffsetY = 0;
+    private boolean hoveredBackButton = false;
 
     public Game(Board board, Pictures pictures) {
         this.board = board;
@@ -278,6 +279,9 @@ public class Game {
                 }
             }
         }
+        if (gameScreen == GameScreen.SCORE_BOARD && backButtonBounds != null) {
+            hoveredBackButton = backButtonBounds.contains(mouseX, mouseY);
+        }
     }
 
     private void drawScoreBoard(Graphics2D g, int panelWidth, int panelHeight) {
@@ -318,8 +322,8 @@ public class Game {
         }
 
         // === Przycisk BACK TO MENU ===
-        String backText = "BACK TO MENU (ESC)";
-        Font backFont = new Font("Arial", Font.BOLD, 36);
+        String backText = "BACK TO MENU";
+        Font backFont = new Font("Arial", Font.BOLD, hoveredBackButton ? 42 : 36);
         g.setFont(backFont);
         FontMetrics fmBack = g.getFontMetrics();
 
@@ -332,8 +336,16 @@ public class Game {
         g.setColor(Color.BLACK);
         g.drawString(backText, backX, backY);
 
-        backButtonBounds = new Rectangle(backX - 20, backY - textHeight, textWidth + 40, textHeight + 20);
-        pictures.drawFrame(g, backButtonBounds.x, backButtonBounds.y, backButtonBounds.width, backButtonBounds.height);
+        int frameX = backX - 20;
+        int frameY = backY - textHeight;
+        int frameWidth = textWidth + 40;
+        int frameHeight = textHeight + 20;
+
+        backButtonBounds = new Rectangle(frameX, frameY, frameWidth, frameHeight);
+
+        if (hoveredBackButton) {
+            pictures.drawFrame(g, frameX, frameY, frameWidth, frameHeight);
+        }
 
         // === Scrollbar ===
         if (entries.size() > maxVisibleLines) {
@@ -383,6 +395,9 @@ public class Game {
     public void startDraggingScrollbar(int mouseX, int mouseY, int panelWidth, int panelHeight) {
         int scrollbarX = panelWidth - 30;
         int scrollbarWidth = 10;
+
+        if (mouseX < scrollbarX || mouseX > scrollbarX + scrollbarWidth)
+            return; // jeśli kliknięcie poza obszarem scrollbara – ignorujemy
         int scrollbarY = computeYStart(panelHeight);
         int scrollbarHeight = computeYEnd(panelHeight) - scrollbarY;
 

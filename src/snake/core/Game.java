@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
 
+
 public class Game {
     private GameScreen gameScreen = GameScreen.MENU;
     private GameLevel gameLevel = GameLevel.EASY;
@@ -25,6 +26,8 @@ public class Game {
     private int hoveredMenuIndex = -1;
     private final ScoreDataBase scoreDataBase = new ScoreDataBase();
     private int[] menuYPositions = new int[0];
+    private Rectangle backButtonBounds = null;
+    private int scrollOffset = 0;
 
     public Game(Board board, Pictures pictures) {
         this.board = board;
@@ -100,6 +103,11 @@ public class Game {
             if (keyCode == KeyEvent.VK_DOWN) snake.moveDirection(Direction.DOWN);
             if (keyCode == KeyEvent.VK_LEFT) snake.moveDirection(Direction.LEFT);
             if (keyCode == KeyEvent.VK_RIGHT) snake.moveDirection(Direction.RIGHT);
+        }
+
+        // Wyjście z SCORE_BOARD do menu
+        if (gameScreen == GameScreen.SCORE_BOARD && keyCode == KeyEvent.VK_ESCAPE) {
+            gameScreen = GameScreen.MENU;
         }
     }
 
@@ -227,6 +235,10 @@ public class Game {
                 }
             }
         }
+        if (gameScreen == GameScreen.SCORE_BOARD && backButtonBounds != null && backButtonBounds.contains(x, y)) {
+            gameScreen = GameScreen.MENU;
+            return;
+        }
     }
 
 
@@ -270,22 +282,100 @@ public class Game {
         g.setColor(Color.YELLOW);
         g.fillRect(0, 0, panelWidth, panelHeight);
 
-        g.setColor(Color.BLACK);
-        g.setFont(new Font("Arial", Font.BOLD, 50));
+        // === Tytuł ===
         String title = "High Scores";
+        g.setColor(Color.BLACK);
+        Font titleFont = new Font("Arial", Font.BOLD, 50);
+        g.setFont(titleFont);
+        FontMetrics fmTitle = g.getFontMetrics();
+        int titleY = 60 + fmTitle.getAscent();
+        g.drawString(title, (panelWidth - fmTitle.stringWidth(title)) / 2, titleY);
+
+        // === Czcionka wyników ===
+        Font scoreFont = new Font("Monospaced", Font.PLAIN, 20);
+        g.setFont(scoreFont);
         FontMetrics fm = g.getFontMetrics();
-        g.drawString(title, (panelWidth - fm.stringWidth(title)) / 2, 80);
+        int lineHeight = fm.getHeight();
 
-        g.setFont(new Font("Arial", Font.PLAIN, 24));
-        fm = g.getFontMetrics();
+        // === Obszar wyświetlania wyników ===
+        int yStart = titleY + 40;
+        int yEnd = panelHeight - 100;
 
-        int y = 130;
-        int lineHeight = fm.getHeight() + 5;
-        for (int i = 0; i < Math.min(20, scoreDataBase.getScores().size()); i++) {
-            ScoreEntry entry = scoreDataBase.getScores().get(i);
+        List<ScoreEntry> entries = scoreDataBase.getScores();
+        int maxVisibleLines = (yEnd - yStart) / lineHeight;
+        int maxScrollOffset = Math.max(0, entries.size() - maxVisibleLines);
+        scrollOffset = Math.max(0, Math.min(scrollOffset, maxScrollOffset));
+
+        // === Wyświetlanie wyników ===
+        for (int i = 0; i < maxVisibleLines && (scrollOffset + i) < entries.size(); i++) {
+            ScoreEntry entry = entries.get(scrollOffset + i);
             String text = String.format("%-20s %4d", entry.getDateTime(), entry.getScore());
-            g.drawString(text, 100, y + i * lineHeight);
+            int x = (panelWidth - 40 - fm.stringWidth(text)) / 2; // margines z prawej
+            int y = yStart + i * lineHeight + fm.getAscent();
+            g.drawString(text, x, y);
         }
+
+        // === Przycisk BACK TO MENU ===
+        String backText = "BACK TO MENU (ESC)";
+        Font backFont = new Font("Arial", Font.BOLD, 36);
+        g.setFont(backFont);
+        FontMetrics fmBack = g.getFontMetrics();
+
+        int textWidth = fmBack.stringWidth(backText);
+        int textHeight = fmBack.getHeight();
+        int xCenter = panelWidth / 2;
+        int backX = xCenter - textWidth / 2;
+        int backY = panelHeight - 40;
+
+        g.setColor(Color.BLACK);
+        g.drawString(backText, backX, backY);
+
+        backButtonBounds = new Rectangle(backX - 20, backY - textHeight, textWidth + 40, textHeight + 20);
+        pictures.drawFrame(g, backButtonBounds.x, backButtonBounds.y, backButtonBounds.width, backButtonBounds.height);
+
+        // === Scrollbar ===
+        if (entries.size() > maxVisibleLines) {
+            int scrollbarWidth = 10;
+            int scrollbarX = panelWidth - 30;
+            int scrollbarY = yStart;
+            int scrollbarHeight = yEnd - yStart;
+
+            float ratio = (float) maxVisibleLines / entries.size();
+            int thumbHeight = Math.max((int) (scrollbarHeight * ratio), 20);
+
+            float scrollRatio = maxScrollOffset > 0 ? (float) scrollOffset / maxScrollOffset : 0;
+            int thumbY = scrollbarY + Math.round((scrollbarHeight - thumbHeight) * scrollRatio);
+
+            g.setColor(Color.LIGHT_GRAY);
+            g.fillRect(scrollbarX, scrollbarY, scrollbarWidth, scrollbarHeight);
+
+            g.setColor(Color.DARK_GRAY);
+            g.fillRect(scrollbarX, thumbY, scrollbarWidth, thumbHeight);
+        }
+    }
+
+
+
+
+
+    public void adjustScrollOffset(int delta) {
+        // Dynamiczne wyliczenie linii — zgodne z drawScoreBoard
+        Font scoreFont = new Font("Monospaced", Font.PLAIN, 20);
+        FontMetrics fm = new Canvas().getFontMetrics(scoreFont);
+        int lineHeight = fm.getHeight() + 5;
+
+        int panelHeight = board.getCellCount() * board.getCellSize() + board.getScoreHeight();
+        int yStart = 60 + new Font("Arial", Font.BOLD, 50).getSize() + 40; // uproszczone oszacowanie
+        int yEnd = panelHeight - 100;
+        int maxVisibleLines = (yEnd - yStart) / lineHeight;
+
+        int maxOffset = Math.max(0, scoreDataBase.getScores().size() - maxVisibleLines);
+
+        scrollOffset = Math.max(0, Math.min(scrollOffset + delta, maxOffset));
+    }
+
+    public GameScreen getGameScreen() {
+        return gameScreen;
     }
 }
 

@@ -3,6 +3,7 @@ package snake;
 import snake.core.Board;
 import snake.core.Game;
 import snake.core.Pictures;
+import snake.enums.GameScreen;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,8 +12,10 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelListener;
+import java.awt.event.MouseWheelEvent;
 
-public class GamePanel extends JPanel implements KeyListener, MouseListener, MouseMotionListener {
+public class GamePanel extends JPanel implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener {
     private final Game game;
     private final Timer timer;
 
@@ -23,6 +26,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Mou
         addKeyListener(this);
         addMouseListener(this);
         addMouseMotionListener(this);
+        addMouseWheelListener(this);
 
         Board board = new Board();
         Pictures pictures = new Pictures();
@@ -76,4 +80,12 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Mou
 
     @Override
     public void mouseDragged(MouseEvent e) {}
+
+    @Override
+    public void mouseWheelMoved(MouseWheelEvent e) {
+        if (game.getGameScreen() == GameScreen.SCORE_BOARD) {
+            game.adjustScrollOffset(e.getWheelRotation());
+            repaint();
+        }
+    }
 }

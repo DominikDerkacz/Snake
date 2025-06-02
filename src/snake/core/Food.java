@@ -7,6 +7,8 @@ public class Food {
     private final Board board;
     private final Pictures pictures;
     public Point position;
+    private float fruitScale = 1.0f;
+    private float scaleDirection = 0.09f; // szybka animacja
 
     public Food(Board board, Pictures pictures) {
         this.board = board;
@@ -26,7 +28,20 @@ public class Food {
     }
 
     public void draw(Graphics2D g) {
-        int size = board.getCellSize();
-        pictures.drawFruit(g, position.x * size, position.y * size, size, size);
+        int baseSize = board.getCellSize();
+        int scaledSize = (int) (baseSize * fruitScale);
+        int offset = (baseSize - scaledSize) / 2;
+
+        int drawX = position.x * baseSize + offset;
+        int drawY = position.y * baseSize + offset;
+
+        pictures.drawFruit(g, drawX, drawY, scaledSize, scaledSize);
+    }
+
+    public void updateAnimation() {
+        fruitScale += scaleDirection;
+        if (fruitScale >= 1.1f || fruitScale <= 0.9f) {
+            scaleDirection *= -1;
+        }
     }
 }

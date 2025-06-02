@@ -56,6 +56,7 @@ public class Game {
     public void update() {
         if (gameScreen == GameScreen.GAME) {
             snake.update();
+            food.updateAnimation();
             handleFoodCollision();
             handleTailCollision();
             handleWallCollision();

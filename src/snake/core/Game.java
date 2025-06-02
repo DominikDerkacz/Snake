@@ -113,22 +113,36 @@ public class Game {
         g.fillRect(0, 0, panelWidth, panelHeight);
 
         String[] levels = {"EASY", "MEDIUM", "HARD"};
-        g.setFont(new Font("Arial", Font.BOLD, 60));
-        FontMetrics fm = g.getFontMetrics();
-        int x = panelWidth / 2;
-        int y = panelHeight / 4;
+        int xCenter = panelWidth / 2;
+        int yStart = panelHeight / 4;
 
         for (int i = 0; i < levels.length; i++) {
             String text = levels[i];
+
+            Font font = (i == hoveredMenuIndex) ? new Font("Arial", Font.BOLD, 72) : new Font("Arial", Font.BOLD, 60);
+            g.setFont(font);
+            FontMetrics fm = g.getFontMetrics();
+
             int textWidth = fm.stringWidth(text);
+            int textHeight = fm.getHeight();
+            int textAscent = fm.getAscent();
+
+            int frameX = xCenter - frameWidth / 2;
+            int frameY = yStart + i * gap - frameHeight / 2;
+
+            // Pozycja tekstu: środek ramki + korekta do środka tekstu
+            int textX = xCenter - textWidth / 2;
+            int textY = frameY + (frameHeight - textHeight) / 2 + textAscent;
+
             g.setColor(Color.BLACK);
-            g.drawString(text, x - textWidth / 2, y + i * gap);
+            g.drawString(text, textX, textY);
 
             if (i == hoveredMenuIndex) {
-                pictures.drawFrame(g, x - frameWidth / 2, y + i * gap - frameHeight / 2, frameWidth, frameHeight);
+                pictures.drawFrame(g, frameX, frameY, frameWidth, frameHeight);
             }
         }
     }
+
 
     private void resetGame() {
         snake.reset();

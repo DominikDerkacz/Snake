@@ -181,7 +181,8 @@ public class Game {
 
 
     private void resetGame() {
-        scoreDataBase.addScore(score);
+        scoreDataBase.addScore(score, gameLevel);
+
         snake.reset();
         food.regenerate();
         score = 0;
@@ -312,13 +313,19 @@ public class Game {
         int maxScrollOffset = Math.max(0, entries.size() - maxVisibleLines);
         scrollOffset = Math.max(0, Math.min(scrollOffset, maxScrollOffset));
 
-        // === Wyświetlanie wyników ===
+// === Wyświetlanie wyników ===
+        int colDateX = 100;
+        int colScoreX = 320;
+        int colLevelX = 400;
+
         for (int i = 0; i < maxVisibleLines && (scrollOffset + i) < entries.size(); i++) {
             ScoreEntry entry = entries.get(scrollOffset + i);
-            String text = String.format("%-20s %4d", entry.getDateTime(), entry.getScore());
-            int x = (panelWidth - 40 - fm.stringWidth(text)) / 2; // margines z prawej
+
             int y = yStart + i * lineHeight + fm.getAscent();
-            g.drawString(text, x, y);
+
+            g.drawString(entry.getDateTime(), colDateX, y);
+            g.drawString(String.format("%4d", entry.getScore()), colScoreX, y);
+            g.drawString("[" + entry.getLevel().toString() + "]", colLevelX, y);
         }
 
         // === Przycisk BACK TO MENU ===

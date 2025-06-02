@@ -1,5 +1,7 @@
 package snake.core;
 
+import snake.enums.GameLevel;
+
 import java.io.*;
 import java.nio.file.*;
 import java.time.LocalDateTime;
@@ -15,14 +17,12 @@ public class ScoreDataBase {
         load();
     }
 
-    public void addScore(int score) {
+    public void addScore(int score, GameLevel level) {
         String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        scores.add(new ScoreEntry(date, score));
+        scores.add(new ScoreEntry(date, score, level));
 
-        // Sortowanie malejąco po wyniku
         scores.sort(Comparator.comparingInt(ScoreEntry::getScore).reversed());
 
-        // Utrzymanie tylko 100 najlepszych
         if (scores.size() > MAX_ENTRIES) {
             scores.subList(MAX_ENTRIES, scores.size()).clear();
         }
@@ -40,14 +40,13 @@ public class ScoreDataBase {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(";");
-                if (parts.length == 2) {
-                    scores.add(new ScoreEntry(parts[0], Integer.parseInt(parts[1])));
+                if (parts.length >= 2) {
+                    int score = Integer.parseInt(parts[1]);
+                    GameLevel level = (parts.length >= 3) ? GameLevel.valueOf(parts[2]) : GameLevel.EASY;
+                    scores.add(new ScoreEntry(parts[0], score, level));
                 }
             }
-            // Sortowanie po wczytaniu
             scores.sort(Comparator.comparingInt(ScoreEntry::getScore).reversed());
-
-            // Ograniczenie do 100 najlepszych
             if (scores.size() > MAX_ENTRIES) {
                 scores.subList(MAX_ENTRIES, scores.size()).clear();
             }
@@ -58,7 +57,7 @@ public class ScoreDataBase {
     private void save() {
         try (BufferedWriter bw = Files.newBufferedWriter(Paths.get(FILE_NAME))) {
             for (ScoreEntry entry : scores) {
-                bw.write(entry.getDateTime() + ";" + entry.getScore());
+                bw.write(entry.getDateTime() + ";" + entry.getScore() + ";" + entry.getLevel().name());
                 bw.newLine();
             }
         } catch (IOException e) {

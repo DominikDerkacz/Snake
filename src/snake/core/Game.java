@@ -152,27 +152,25 @@ public class Game {
     }
 
     public void onMouseClick(int x, int y, int panelWidth, int panelHeight) {
-        if (gameScreen == GameScreen.MENU) {
-            String[] levels = {"EASY", "MEDIUM", "HARD"};
+        if (gameScreen == GameScreen.MENU && hoveredMenuIndex != -1) {
+            int xCenter = panelWidth / 2;
             int yStart = panelHeight / 4;
 
-            for (int i = 0; i < levels.length; i++) {
-                int optionY = yStart + i * gap;
-                int optionHeight = frameHeight;
+            int frameX = xCenter - frameWidth / 2;
+            int frameY = yStart + hoveredMenuIndex * gap - frameHeight / 2;
 
-                // Sprawdzenie, czy kliknięto w obszar opcji
-                if (y >= optionY - optionHeight / 2 && y <= optionY + optionHeight / 2) {
-                    currentMenuIndex = i; // <--- Aktualizacja indeksu ramki
-                    switch (i) {
-                        case 0 -> gameLevel = GameLevel.EASY;
-                        case 1 -> gameLevel = GameLevel.MEDIUM;
-                        case 2 -> gameLevel = GameLevel.HARD;
-                    }
-                    snake.reset();
-                    score = 0;
-                    gameScreen = GameScreen.GAME;
-                    break;
+            Rectangle frameBounds = new Rectangle(frameX, frameY, frameWidth, frameHeight);
+
+            if (frameBounds.contains(x, y)) {
+                currentMenuIndex = hoveredMenuIndex;
+                switch (hoveredMenuIndex) {
+                    case 0 -> gameLevel = GameLevel.EASY;
+                    case 1 -> gameLevel = GameLevel.MEDIUM;
+                    case 2 -> gameLevel = GameLevel.HARD;
                 }
+                snake.reset();
+                score = 0;
+                gameScreen = GameScreen.GAME;
             }
         }
     }
@@ -180,14 +178,18 @@ public class Game {
     public void onMouseMove(int mouseX, int mouseY, int panelWidth, int panelHeight) {
         if (gameScreen == GameScreen.MENU) {
             String[] levels = {"EASY", "MEDIUM", "HARD"};
+            int xCenter = panelWidth / 2;
             int yStart = panelHeight / 4;
 
             hoveredMenuIndex = -1;
-            for (int i = 0; i < levels.length; i++) {
-                int optionY = yStart + i * gap;
-                int optionHeight = frameHeight;
 
-                if (mouseY >= optionY - optionHeight / 2 && mouseY <= optionY + optionHeight / 2) {
+            for (int i = 0; i < levels.length; i++) {
+                int frameX = xCenter - frameWidth / 2;
+                int frameY = yStart + i * gap - frameHeight / 2;
+
+                Rectangle frameBounds = new Rectangle(frameX, frameY, frameWidth, frameHeight);
+
+                if (frameBounds.contains(mouseX, mouseY)) {
                     hoveredMenuIndex = i;
                     break;
                 }

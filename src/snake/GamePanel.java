@@ -67,8 +67,16 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Mou
         game.onMouseClick(e.getX(), e.getY(), getWidth(), getHeight());
     }
 
-    @Override public void mousePressed(MouseEvent e) {}
-    @Override public void mouseReleased(MouseEvent e) {}
+    @Override
+    public void mousePressed(MouseEvent e) {
+        if (game.getGameScreen() == GameScreen.SCORE_BOARD) {
+            game.startDraggingScrollbar(e.getX(), e.getY(), getWidth(), getHeight());
+        }
+    }
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        game.stopDraggingScrollbar();
+    }
     @Override public void mouseEntered(MouseEvent e) {}
     @Override public void mouseExited(MouseEvent e) {}
 
@@ -79,7 +87,12 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Mou
     }
 
     @Override
-    public void mouseDragged(MouseEvent e) {}
+    public void mouseDragged(MouseEvent e) {
+        if (game.getGameScreen() == GameScreen.SCORE_BOARD) {
+            game.dragScrollbar(e.getY(), getHeight());
+            repaint();
+        }
+    }
 
     @Override
     public void mouseWheelMoved(MouseWheelEvent e) {

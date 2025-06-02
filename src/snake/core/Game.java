@@ -28,6 +28,8 @@ public class Game {
     private int[] menuYPositions = new int[0];
     private Rectangle backButtonBounds = null;
     private int scrollOffset = 0;
+    private boolean draggingThumb = false;
+    private int dragOffsetY = 0;
 
     public Game(Board board, Pictures pictures) {
         this.board = board;
@@ -376,6 +378,65 @@ public class Game {
 
     public GameScreen getGameScreen() {
         return gameScreen;
+    }
+
+    public void startDraggingScrollbar(int mouseX, int mouseY, int panelWidth, int panelHeight) {
+        if (backButtonBounds == null) return;
+
+        int scrollbarX = panelWidth - 30;
+        int scrollbarWidth = 10;
+        int scrollbarY = computeYStart(panelHeight);
+        int scrollbarHeight = computeYEnd(panelHeight) - scrollbarY;
+
+        int maxVisibleLines = getMaxVisibleLines(panelHeight);
+        if (scoreDataBase.getScores().size() <= maxVisibleLines) return;
+
+        float ratio = (float) maxVisibleLines / scoreDataBase.getScores().size();
+        int thumbHeight = Math.max((int) (scrollbarHeight * ratio), 20);
+
+        float scrollRatio = (float) scrollOffset / (scoreDataBase.getScores().size() - maxVisibleLines);
+        int thumbY = scrollbarY + Math.round((scrollbarHeight - thumbHeight) * scrollRatio);
+
+        Rectangle thumbBounds = new Rectangle(scrollbarX, thumbY, scrollbarWidth, thumbHeight);
+
+        if (thumbBounds.contains(mouseX, mouseY)) {
+            draggingThumb = true;
+            dragOffsetY = mouseY - thumbY;
+        }
+    }
+    public void dragScrollbar(int mouseY, int panelHeight) {
+        if (!draggingThumb) return;
+
+        int scrollbarY = computeYStart(panelHeight);
+        int scrollbarHeight = computeYEnd(panelHeight) - scrollbarY;
+
+        int maxVisibleLines = getMaxVisibleLines(panelHeight);
+        int maxOffset = Math.max(0, scoreDataBase.getScores().size() - maxVisibleLines);
+        if (maxOffset == 0) return;
+
+        int thumbY = mouseY - dragOffsetY;
+        thumbY = Math.max(scrollbarY, Math.min(thumbY, scrollbarY + scrollbarHeight - 20)); // ograniczenia
+
+        float scrollRatio = (float) (thumbY - scrollbarY) / (scrollbarHeight - 20);
+        scrollOffset = Math.round(scrollRatio * maxOffset);
+    }
+
+    private int computeYStart(int panelHeight) {
+        FontMetrics fmTitle = new Canvas().getFontMetrics(new Font("Arial", Font.BOLD, 50));
+        return 60 + fmTitle.getHeight() + 40;
+    }
+
+    private int computeYEnd(int panelHeight) {
+        return panelHeight - 100;
+    }
+
+    private int getMaxVisibleLines(int panelHeight) {
+        FontMetrics fm = new Canvas().getFontMetrics(new Font("Monospaced", Font.PLAIN, 20));
+        int lineHeight = fm.getHeight();
+        return (computeYEnd(panelHeight) - computeYStart(panelHeight)) / lineHeight;
+    }
+    public void stopDraggingScrollbar() {
+        draggingThumb = false;
     }
 }
 

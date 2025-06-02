@@ -6,6 +6,7 @@ import snake.enums.GameScreen;
 import java.awt.event.KeyEvent;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.List;
 
 public class Game {
@@ -22,6 +23,8 @@ public class Game {
     private int currentMenuIndex = 0;
     private long lastKeyTime = System.currentTimeMillis();
     private int hoveredMenuIndex = -1;
+    private final ScoreDataBase scoreDataBase = new ScoreDataBase();
+    private int[] menuYPositions = new int[0];
 
     public Game(Board board, Pictures pictures) {
         this.board = board;
@@ -38,6 +41,9 @@ public class Game {
             drawScore(g, panelWidth);
         } else if (gameScreen == GameScreen.MENU) {
             drawMenu(g, panelWidth, panelHeight);
+        }
+        else if (gameScreen == GameScreen.SCORE_BOARD) {
+            drawScoreBoard(g, panelWidth, panelHeight);
         }
     }
 
@@ -112,14 +118,25 @@ public class Game {
         g.setColor(Color.YELLOW);
         g.fillRect(0, 0, panelWidth, panelHeight);
 
-        String[] levels = {"EASY", "MEDIUM", "HARD"};
+        String[] levels = {"EASY", "MEDIUM", "HARD", "SCORE BOARD"};
         int xCenter = panelWidth / 2;
-        int yStart = panelHeight / 4;
+        int totalItems = levels.length;
+        int topMargin = 170; // opcjonalny margines od góry
+        int bottomMargin = 170; // i od dołu
+        int usableHeight = panelHeight - topMargin - bottomMargin;
+        int spacing = usableHeight / (totalItems - 1); // równe odstępy
+
+        int[] yPositions = new int[totalItems];
+        for (int i = 0; i < totalItems; i++) {
+            yPositions[i] = topMargin + i * spacing;
+        }
+        this.menuYPositions = yPositions;
 
         for (int i = 0; i < levels.length; i++) {
             String text = levels[i];
 
-            Font font = (i == hoveredMenuIndex) ? new Font("Arial", Font.BOLD, 72) : new Font("Arial", Font.BOLD, 60);
+            // Mniejsza czcionka (np. 48 i 56 dla hovera)
+            Font font = (i == hoveredMenuIndex) ? new Font("Arial", Font.BOLD, 60) : new Font("Arial", Font.BOLD, 50);
             g.setFont(font);
             FontMetrics fm = g.getFontMetrics();
 
@@ -127,16 +144,24 @@ public class Game {
             int textHeight = fm.getHeight();
             int textAscent = fm.getAscent();
 
+            // Ramka dopasowana do rozmiaru tekstu + margines
+            int marginX = 30;
+            int marginY = 20;
+
+            int frameWidth = textWidth + marginX * 2;
+            int frameHeight = textHeight + marginY;
+
             int frameX = xCenter - frameWidth / 2;
-            int frameY = yStart + i * gap - frameHeight / 2;
-
-            // Pozycja tekstu: środek ramki + korekta do środka tekstu
-            int textX = xCenter - textWidth / 2;
+            int frameY = yPositions[i] - frameHeight / 2;
             int textY = frameY + (frameHeight - textHeight) / 2 + textAscent;
+            int textX = xCenter - textWidth / 2;
 
+
+            // Rysowanie tekstu
             g.setColor(Color.BLACK);
             g.drawString(text, textX, textY);
 
+            // Rysowanie ramki (jeśli najechane)
             if (i == hoveredMenuIndex) {
                 pictures.drawFrame(g, frameX, frameY, frameWidth, frameHeight);
             }
@@ -145,6 +170,7 @@ public class Game {
 
 
     private void resetGame() {
+        scoreDataBase.addScore(score);
         snake.reset();
         food.regenerate();
         score = 0;
@@ -152,40 +178,83 @@ public class Game {
     }
 
     public void onMouseClick(int x, int y, int panelWidth, int panelHeight) {
-        if (gameScreen == GameScreen.MENU && hoveredMenuIndex != -1) {
+        if (gameScreen == GameScreen.MENU && hoveredMenuIndex != -1 && menuYPositions.length > hoveredMenuIndex) {
             int xCenter = panelWidth / 2;
-            int yStart = panelHeight / 4;
+
+            String text = switch (hoveredMenuIndex) {
+                case 0 -> "EASY";
+                case 1 -> "MEDIUM";
+                case 2 -> "HARD";
+                case 3 -> "SCORE BOARD";
+                default -> "";
+            };
+
+            Font font = (hoveredMenuIndex == hoveredMenuIndex) ? new Font("Arial", Font.BOLD, 56) : new Font("Arial", Font.BOLD, 48);
+            Graphics2D g = (Graphics2D) new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).getGraphics();
+            g.setFont(font);
+            FontMetrics fm = g.getFontMetrics();
+            int textWidth = fm.stringWidth(text);
+            int textHeight = fm.getHeight();
+            int frameWidth = textWidth + 60;
+            int frameHeight = textHeight + 20;
 
             int frameX = xCenter - frameWidth / 2;
-            int frameY = yStart + hoveredMenuIndex * gap - frameHeight / 2;
+            int frameY = menuYPositions[hoveredMenuIndex] - frameHeight / 2;
 
             Rectangle frameBounds = new Rectangle(frameX, frameY, frameWidth, frameHeight);
 
             if (frameBounds.contains(x, y)) {
-                currentMenuIndex = hoveredMenuIndex;
                 switch (hoveredMenuIndex) {
-                    case 0 -> gameLevel = GameLevel.EASY;
-                    case 1 -> gameLevel = GameLevel.MEDIUM;
-                    case 2 -> gameLevel = GameLevel.HARD;
+                    case 0 -> {
+                        gameLevel = GameLevel.EASY;
+                        snake.reset();
+                        score = 0;
+                        gameScreen = GameScreen.GAME;
+                    }
+                    case 1 -> {
+                        gameLevel = GameLevel.MEDIUM;
+                        snake.reset();
+                        score = 0;
+                        gameScreen = GameScreen.GAME;
+                    }
+                    case 2 -> {
+                        gameLevel = GameLevel.HARD;
+                        snake.reset();
+                        score = 0;
+                        gameScreen = GameScreen.GAME;
+                    }
+                    case 3 -> gameScreen = GameScreen.SCORE_BOARD;
                 }
-                snake.reset();
-                score = 0;
-                gameScreen = GameScreen.GAME;
             }
         }
     }
 
+
     public void onMouseMove(int mouseX, int mouseY, int panelWidth, int panelHeight) {
-        if (gameScreen == GameScreen.MENU) {
-            String[] levels = {"EASY", "MEDIUM", "HARD"};
-            int xCenter = panelWidth / 2;
-            int yStart = panelHeight / 4;
-
+        if (gameScreen == GameScreen.MENU && menuYPositions.length > 0) {
             hoveredMenuIndex = -1;
+            int xCenter = panelWidth / 2;
 
-            for (int i = 0; i < levels.length; i++) {
+            for (int i = 0; i < menuYPositions.length; i++) {
+                String text = switch (i) {
+                    case 0 -> "EASY";
+                    case 1 -> "MEDIUM";
+                    case 2 -> "HARD";
+                    case 3 -> "SCORE BOARD";
+                    default -> "";
+                };
+
+                Font font = (i == hoveredMenuIndex) ? new Font("Arial", Font.BOLD, 56) : new Font("Arial", Font.BOLD, 48);
+                Graphics2D g = (Graphics2D) new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).getGraphics();
+                g.setFont(font);
+                FontMetrics fm = g.getFontMetrics();
+                int textWidth = fm.stringWidth(text);
+                int textHeight = fm.getHeight();
+                int frameWidth = textWidth + 60;
+                int frameHeight = textHeight + 20;
+
                 int frameX = xCenter - frameWidth / 2;
-                int frameY = yStart + i * gap - frameHeight / 2;
+                int frameY = menuYPositions[i] - frameHeight / 2;
 
                 Rectangle frameBounds = new Rectangle(frameX, frameY, frameWidth, frameHeight);
 
@@ -194,6 +263,28 @@ public class Game {
                     break;
                 }
             }
+        }
+    }
+
+    private void drawScoreBoard(Graphics2D g, int panelWidth, int panelHeight) {
+        g.setColor(Color.YELLOW);
+        g.fillRect(0, 0, panelWidth, panelHeight);
+
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("Arial", Font.BOLD, 50));
+        String title = "High Scores";
+        FontMetrics fm = g.getFontMetrics();
+        g.drawString(title, (panelWidth - fm.stringWidth(title)) / 2, 80);
+
+        g.setFont(new Font("Arial", Font.PLAIN, 24));
+        fm = g.getFontMetrics();
+
+        int y = 130;
+        int lineHeight = fm.getHeight() + 5;
+        for (int i = 0; i < Math.min(20, scoreDataBase.getScores().size()); i++) {
+            ScoreEntry entry = scoreDataBase.getScores().get(i);
+            String text = String.format("%-20s %4d", entry.getDateTime(), entry.getScore());
+            g.drawString(text, 100, y + i * lineHeight);
         }
     }
 }

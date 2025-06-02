@@ -31,9 +31,6 @@ public class Game {
     private boolean draggingThumb = false;
     private int dragOffsetY = 0;
     private boolean hoveredBackButton = false;
-    private Point flashPosition = null;
-    private long flashStartTime = 0;
-    private final int FLASH_DURATION = 300; // w ms
 
     public Game(Board board, Pictures pictures) {
         this.board = board;

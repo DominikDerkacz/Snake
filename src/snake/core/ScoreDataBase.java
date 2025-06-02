@@ -17,10 +17,16 @@ public class ScoreDataBase {
 
     public void addScore(int score) {
         String date = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-        scores.add(0, new ScoreEntry(date, score)); // dodaj na początek
+        scores.add(new ScoreEntry(date, score));
+
+        // Sortowanie malejąco po wyniku
+        scores.sort(Comparator.comparingInt(ScoreEntry::getScore).reversed());
+
+        // Utrzymanie tylko 100 najlepszych
         if (scores.size() > MAX_ENTRIES) {
-            scores.remove(scores.size() - 1); // usuń najstarszy
+            scores.subList(MAX_ENTRIES, scores.size()).clear();
         }
+
         save();
     }
 
@@ -37,6 +43,13 @@ public class ScoreDataBase {
                 if (parts.length == 2) {
                     scores.add(new ScoreEntry(parts[0], Integer.parseInt(parts[1])));
                 }
+            }
+            // Sortowanie po wczytaniu
+            scores.sort(Comparator.comparingInt(ScoreEntry::getScore).reversed());
+
+            // Ograniczenie do 100 najlepszych
+            if (scores.size() > MAX_ENTRIES) {
+                scores.subList(MAX_ENTRIES, scores.size()).clear();
             }
         } catch (IOException ignored) {
         }

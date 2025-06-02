@@ -289,7 +289,7 @@ public class Game {
         g.fillRect(0, 0, panelWidth, panelHeight);
 
         // === Tytuł ===
-        String title = "High Scores";
+        String title = "TOP 100 Scores";
         g.setColor(Color.BLACK);
         Font titleFont = new Font("Arial", Font.BOLD, 50);
         g.setFont(titleFont);

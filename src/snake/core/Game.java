@@ -381,20 +381,20 @@ public class Game {
     }
 
     public void startDraggingScrollbar(int mouseX, int mouseY, int panelWidth, int panelHeight) {
-        if (backButtonBounds == null) return;
-
         int scrollbarX = panelWidth - 30;
         int scrollbarWidth = 10;
         int scrollbarY = computeYStart(panelHeight);
         int scrollbarHeight = computeYEnd(panelHeight) - scrollbarY;
 
         int maxVisibleLines = getMaxVisibleLines(panelHeight);
-        if (scoreDataBase.getScores().size() <= maxVisibleLines) return;
+        int totalEntries = scoreDataBase.getScores().size();
+        if (totalEntries <= maxVisibleLines) return;
 
-        float ratio = (float) maxVisibleLines / scoreDataBase.getScores().size();
+        float ratio = (float) maxVisibleLines / totalEntries;
         int thumbHeight = Math.max((int) (scrollbarHeight * ratio), 20);
 
-        float scrollRatio = (float) scrollOffset / (scoreDataBase.getScores().size() - maxVisibleLines);
+        int maxOffset = totalEntries - maxVisibleLines;
+        float scrollRatio = (float) scrollOffset / maxOffset;
         int thumbY = scrollbarY + Math.round((scrollbarHeight - thumbHeight) * scrollRatio);
 
         Rectangle thumbBounds = new Rectangle(scrollbarX, thumbY, scrollbarWidth, thumbHeight);
@@ -402,8 +402,15 @@ public class Game {
         if (thumbBounds.contains(mouseX, mouseY)) {
             draggingThumb = true;
             dragOffsetY = mouseY - thumbY;
+        } else {
+            // Kliknięcie w tło paska: przeskocz suwak
+            int clickedThumbY = mouseY - scrollbarY - thumbHeight / 2;
+            float newRatio = (float) clickedThumbY / (scrollbarHeight - thumbHeight);
+            newRatio = Math.max(0, Math.min(newRatio, 1f));
+            scrollOffset = Math.round(newRatio * maxOffset);
         }
     }
+
     public void dragScrollbar(int mouseY, int panelHeight) {
         if (!draggingThumb) return;
 

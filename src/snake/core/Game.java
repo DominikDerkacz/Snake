@@ -40,6 +40,7 @@ public class Game {
         this.obstacle = new Obstacle(board, 0); // najpierw przeszkody
         this.obstacle.setSnake(snake);
         this.food = new Food(board, pictures, obstacle); // potem jedzenie
+        hoveredBackButton = false;
 
     }
 
@@ -51,11 +52,16 @@ public class Game {
             drawScore(g, panelWidth);
             obstacle.draw(g);
 
-        } else if (gameScreen == GameScreen.MENU) {
+        }
+        else if (gameScreen == GameScreen.MENU) {
             drawMenu(g, panelWidth, panelHeight);
         }
         else if (gameScreen == GameScreen.SCORE_BOARD) {
             drawScoreBoard(g, panelWidth, panelHeight);
+        }
+        else if (gameScreen == GameScreen.MULTIPLAYER_MENU)
+        {
+            drawMultiplayer(g, panelWidth, panelHeight);
         }
     }
 
@@ -128,7 +134,10 @@ public class Game {
         }
 
         // Wyjście z SCORE_BOARD do menu
-        if (gameScreen == GameScreen.SCORE_BOARD && keyCode == KeyEvent.VK_ESCAPE) {
+        if ((gameScreen == GameScreen.SCORE_BOARD || gameScreen == GameScreen.MULTIPLAYER_MENU)
+                && keyCode == KeyEvent.VK_ESCAPE) {
+            hoveredMenuIndex=-1;
+            hoveredBackButton = false;
             gameScreen = GameScreen.MENU;
         }
     }
@@ -198,6 +207,85 @@ public class Game {
         }
     }
 
+    private void drawMultiplayer(Graphics2D g, int panelWidth, int panelHeight) {
+        g.setColor(Color.YELLOW);
+        g.fillRect(0, 0, panelWidth, panelHeight);
+
+        String[] levels = {"PLAYER VS PLAYER", "PLAYER VS AI", "AI VS AI"};
+        int xCenter = panelWidth / 2;
+        int totalItems = levels.length;
+        int topMargin = 180; // opcjonalny margines od góry
+        int bottomMargin = 180; // i od dołu
+        int usableHeight = panelHeight - topMargin - bottomMargin;
+        int spacing = usableHeight / (totalItems - 1); // równe odstępy
+
+        int[] yPositions = new int[totalItems];
+        for (int i = 0; i < totalItems; i++) {
+            yPositions[i] = topMargin + i * spacing;
+        }
+        this.menuYPositions = yPositions;
+
+        for (int i = 0; i < levels.length; i++) {
+            String text = levels[i];
+
+            // Mniejsza czcionka (np. 48 i 56 dla hovera)
+            Font font = (i == hoveredMenuIndex) ? new Font("Arial", Font.BOLD, 60) : new Font("Arial", Font.BOLD, 50);
+            g.setFont(font);
+            FontMetrics fm = g.getFontMetrics();
+
+            int textWidth = fm.stringWidth(text);
+            int textHeight = fm.getHeight();
+            int textAscent = fm.getAscent();
+
+            // Ramka dopasowana do rozmiaru tekstu + margines
+            int marginX = 30;
+            int marginY = 20;
+
+            int frameWidth = textWidth + marginX * 2;
+            int frameHeight = textHeight + marginY;
+
+            int frameX = xCenter - frameWidth / 2;
+            int frameY = yPositions[i] - frameHeight / 2;
+            int textY = frameY + (frameHeight - textHeight) / 2 + textAscent;
+            int textX = xCenter - textWidth / 2;
+
+
+            // Rysowanie tekstu
+            g.setColor(Color.BLACK);
+            g.drawString(text, textX, textY);
+
+            // Rysowanie ramki (jeśli najechane)
+            if (i == hoveredMenuIndex) {
+                pictures.drawFrame(g, frameX, frameY, frameWidth, frameHeight);
+            }
+        }
+        // === Przycisk BACK TO MENU ===
+        String backText = "BACK TO MENU (ESC)";
+        Font backFont = new Font("Arial", Font.BOLD, hoveredBackButton ? 42 : 36);
+        g.setFont(backFont);
+        FontMetrics fmBack = g.getFontMetrics();
+
+        int textWidth = fmBack.stringWidth(backText);
+        int textHeight = fmBack.getHeight();
+        int X = panelWidth / 2;
+        int backX = X - textWidth / 2;
+        int backY = panelHeight - 40;
+
+        g.setColor(Color.BLACK);
+        g.drawString(backText, backX, backY);
+
+        int frameX = backX - 20;
+        int frameY = backY - textHeight;
+        int frameWidth = textWidth + 40;
+        int frameHeight = textHeight + 20;
+
+        backButtonBounds = new Rectangle(frameX, frameY, frameWidth, frameHeight);
+
+        if (hoveredBackButton) {
+            pictures.drawFrame(g, frameX, frameY, frameWidth, frameHeight);
+        }
+    }
+
 
     private void resetGame() {
         scoreDataBase.addScore(score, gameLevel);
@@ -262,12 +350,15 @@ public class Game {
                         obstacle.regenerate();
                         gameScreen = GameScreen.GAME;
                     }
-                    case 3 -> {}//gameScreen = GameScreen.MULTIPLAYER_MENU;
+                    case 3 -> gameScreen = GameScreen.MULTIPLAYER_MENU;
                     case 4 -> gameScreen = GameScreen.SCORE_BOARD;
                 }
             }
         }
-        if (gameScreen == GameScreen.SCORE_BOARD && backButtonBounds != null && backButtonBounds.contains(x, y)) {
+        if ((gameScreen == GameScreen.SCORE_BOARD || gameScreen == GameScreen.MULTIPLAYER_MENU)
+                && backButtonBounds != null && backButtonBounds.contains(x, y)) {
+            hoveredMenuIndex=-1;
+            hoveredBackButton = false;
             gameScreen = GameScreen.MENU;
             return;
         }
@@ -309,8 +400,10 @@ public class Game {
                 }
             }
         }
-        if (gameScreen == GameScreen.SCORE_BOARD && backButtonBounds != null) {
+        if ((gameScreen == GameScreen.SCORE_BOARD || gameScreen == GameScreen.MULTIPLAYER_MENU)
+                && backButtonBounds != null) {
             hoveredBackButton = backButtonBounds.contains(mouseX, mouseY);
+
         }
     }
 
@@ -358,7 +451,7 @@ public class Game {
         }
 
         // === Przycisk BACK TO MENU ===
-        String backText = "BACK TO MENU";
+        String backText = "BACK TO MENU (ESC)";
         Font backFont = new Font("Arial", Font.BOLD, hoveredBackButton ? 42 : 36);
         g.setFont(backFont);
         FontMetrics fmBack = g.getFontMetrics();

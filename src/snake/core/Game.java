@@ -148,11 +148,11 @@ public class Game {
         g.setColor(Color.YELLOW);
         g.fillRect(0, 0, panelWidth, panelHeight);
 
-        String[] levels = {"EASY", "MEDIUM", "HARD", "SCORE BOARD"};
+        String[] levels = {"EASY", "MEDIUM", "HARD", "MULTIPLAYER", "SCORE BOARD"};
         int xCenter = panelWidth / 2;
         int totalItems = levels.length;
-        int topMargin = 170; // opcjonalny margines od góry
-        int bottomMargin = 170; // i od dołu
+        int topMargin = 140; // opcjonalny margines od góry
+        int bottomMargin = 140; // i od dołu
         int usableHeight = panelHeight - topMargin - bottomMargin;
         int spacing = usableHeight / (totalItems - 1); // równe odstępy
 
@@ -217,7 +217,8 @@ public class Game {
                 case 0 -> "EASY";
                 case 1 -> "MEDIUM";
                 case 2 -> "HARD";
-                case 3 -> "SCORE BOARD";
+                case 3 -> "MULTIPLAYER";
+                case 4 -> "SCORE BOARD";
                 default -> "";
             };
 
@@ -261,7 +262,8 @@ public class Game {
                         obstacle.regenerate();
                         gameScreen = GameScreen.GAME;
                     }
-                    case 3 -> gameScreen = GameScreen.SCORE_BOARD;
+                    case 3 -> {}//gameScreen = GameScreen.MULTIPLAYER_MENU;
+                    case 4 -> gameScreen = GameScreen.SCORE_BOARD;
                 }
             }
         }
@@ -282,7 +284,8 @@ public class Game {
                     case 0 -> "EASY";
                     case 1 -> "MEDIUM";
                     case 2 -> "HARD";
-                    case 3 -> "SCORE BOARD";
+                    case 3 -> "MULTIPLAYER";
+                    case 4 -> "SCORE BOARD";
                     default -> "";
                 };
 

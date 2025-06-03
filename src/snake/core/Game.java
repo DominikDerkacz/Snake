@@ -17,6 +17,7 @@ public class Game {
     private final Food food;
     private final Board board;
     private final Snake snake;
+    private Obstacle obstacle;
     private int score = 0;
     private final int gap = 160;
     private final int frameWidth = 350;
@@ -36,7 +37,10 @@ public class Game {
         this.board = board;
         this.pictures = pictures;
         this.snake = new Snake(board, pictures);
-        this.food = new Food(board, pictures);
+        this.obstacle = new Obstacle(board, 0); // najpierw przeszkody
+        this.obstacle.setSnake(snake);
+        this.food = new Food(board, pictures, obstacle); // potem jedzenie
+
     }
 
     public void draw(Graphics2D g, int panelWidth, int panelHeight) {
@@ -45,6 +49,8 @@ public class Game {
             snake.draw(g);
             food.draw(g);
             drawScore(g, panelWidth);
+            obstacle.draw(g);
+
         } else if (gameScreen == GameScreen.MENU) {
             drawMenu(g, panelWidth, panelHeight);
         }
@@ -60,6 +66,7 @@ public class Game {
             handleFoodCollision();
             handleTailCollision();
             handleWallCollision();
+            handleObstacleCollision();
         }
     }
 
@@ -70,6 +77,17 @@ public class Game {
             snake.addTail();
         }
     }
+
+    private void handleObstacleCollision() {
+        Point head = snake.getTail().get(0);
+        for (Point p : obstacle.getObstacles()) {
+            if (p.equals(head)) {
+                resetGame();
+                return;
+            }
+        }
+    }
+
 
     public void handleTailCollision() {
         List<Point> tail = snake.getTail();
@@ -186,6 +204,7 @@ public class Game {
 
         snake.reset();
         food.regenerate();
+        obstacle.regenerate();
         score = 0;
         gameScreen = GameScreen.MENU;
     }
@@ -222,18 +241,24 @@ public class Game {
                         gameLevel = GameLevel.EASY;
                         snake.reset();
                         score = 0;
+                        obstacle.setObstacleCount(5);
+                        obstacle.regenerate();
                         gameScreen = GameScreen.GAME;
                     }
                     case 1 -> {
                         gameLevel = GameLevel.MEDIUM;
                         snake.reset();
                         score = 0;
+                        obstacle.setObstacleCount(10);
+                        obstacle.regenerate();
                         gameScreen = GameScreen.GAME;
                     }
                     case 2 -> {
                         gameLevel = GameLevel.HARD;
                         snake.reset();
                         score = 0;
+                        obstacle.setObstacleCount(15);
+                        obstacle.regenerate();
                         gameScreen = GameScreen.GAME;
                     }
                     case 3 -> gameScreen = GameScreen.SCORE_BOARD;

@@ -9,18 +9,24 @@ public class Food {
     public Point position;
     private float fruitScale = 1.0f;
     private float scaleDirection = 0.09f; // szybka animacja
+    private Obstacle obstacle; // przeszkody
 
-    public Food(Board board, Pictures pictures) {
+    public Food(Board board, Pictures pictures, Obstacle obstacle) {
         this.board = board;
         this.pictures = pictures;
+        this.obstacle = obstacle;
         this.position = getRandomPos();
     }
 
     public Point getRandomPos() {
         Random random = new Random();
-        int x = random.nextInt(board.getCellCount());
-        int y = random.nextInt(board.getCellCount());
-        return new Point(x, y);
+        Point p;
+        do {
+            int x = random.nextInt(board.getCellCount());
+            int y = random.nextInt(board.getCellCount());
+            p = new Point(x, y);
+        } while (obstacle.getObstacles().contains(p)); // unika kolizji z przeszkodą
+        return p;
     }
 
     public void regenerate() {

@@ -17,13 +17,8 @@ public class Game {
     private final Food food;
     private final Board board;
     private final Snake snake;
-    private Obstacle obstacle;
+    private final Obstacle obstacle;
     private int score = 0;
-    private final int gap = 160;
-    private final int frameWidth = 350;
-    private final int frameHeight = 120;
-    private int currentMenuIndex = 0;
-    private long lastKeyTime = System.currentTimeMillis();
     private int hoveredMenuIndex = -1;
     private final ScoreDataBase scoreDataBase = new ScoreDataBase();
     private int[] menuYPositions = new int[0];
@@ -31,7 +26,7 @@ public class Game {
     private int scrollOffset = 0;
     private boolean draggingThumb = false;
     private int dragOffsetY = 0;
-    private boolean hoveredBackButton = false;
+    private boolean hoveredBackButton;
 
     public Game(Board board, Pictures pictures) {
         this.board = board;
@@ -77,7 +72,7 @@ public class Game {
     }
 
     public void handleFoodCollision() {
-        if (snake.getTail().get(0).equals(food.position)) {
+        if (snake.getTail().getFirst().equals(food.position)) {
             score++;
             food.regenerate();
             snake.addTail();
@@ -85,7 +80,7 @@ public class Game {
     }
 
     private void handleObstacleCollision() {
-        Point head = snake.getTail().get(0);
+        Point head = snake.getTail().getFirst();
         for (Point p : obstacle.getObstacles()) {
             if (p.equals(head)) {
                 resetGame();
@@ -97,7 +92,7 @@ public class Game {
 
     public void handleTailCollision() {
         List<Point> tail = snake.getTail();
-        Point head = tail.get(0);
+        Point head = tail.getFirst();
         for (int i = 1; i < tail.size(); i++) {
             if (head.equals(tail.get(i))) {
                 resetGame();
@@ -107,13 +102,13 @@ public class Game {
     }
 
     public void handleWallCollision() {
-        Point head = snake.getTail().get(0);
+        Point head = snake.getTail().getFirst();
         if (head.x < 0 || head.y < 0 || head.x >= board.getCellCount() || head.y >= board.getCellCount()) {
             resetGame();
         }
     }
 
-    public boolean shouldMove(float delay) {
+    public boolean shouldMove() {
         return snake.moveTime(delayForLevel());
     }
 
@@ -214,8 +209,8 @@ public class Game {
         String[] levels = {"PLAYER VS PLAYER", "PLAYER VS AI", "AI VS AI"};
         int xCenter = panelWidth / 2;
         int totalItems = levels.length;
-        int topMargin = 180; // opcjonalny margines od góry
-        int bottomMargin = 180; // i od dołu
+        int topMargin = 140; // opcjonalny margines od góry
+        int bottomMargin = 300; // i od dołu
         int usableHeight = panelHeight - topMargin - bottomMargin;
         int spacing = usableHeight / (totalItems - 1); // równe odstępy
 
@@ -229,7 +224,7 @@ public class Game {
             String text = levels[i];
 
             // Mniejsza czcionka (np. 48 i 56 dla hovera)
-            Font font = (i == hoveredMenuIndex) ? new Font("Arial", Font.BOLD, 60) : new Font("Arial", Font.BOLD, 50);
+            Font font = (i == hoveredMenuIndex) ? new Font("Arial", Font.BOLD, 56) : new Font("Arial", Font.BOLD, 45);
             g.setFont(font);
             FontMetrics fm = g.getFontMetrics();
 
@@ -297,81 +292,13 @@ public class Game {
         gameScreen = GameScreen.MENU;
     }
 
-    public void onMouseClick(int x, int y, int panelWidth, int panelHeight) {
-        if (gameScreen == GameScreen.MENU && hoveredMenuIndex != -1 && menuYPositions.length > hoveredMenuIndex) {
+    public void onMouseClick(int x, int y, int panelWidth) {
+        if ((gameScreen == GameScreen.MENU || gameScreen == GameScreen.MULTIPLAYER_MENU)
+                && hoveredMenuIndex != -1 && menuYPositions.length > hoveredMenuIndex) {
+
             int xCenter = panelWidth / 2;
-
-            String text = switch (hoveredMenuIndex) {
-                case 0 -> "EASY";
-                case 1 -> "MEDIUM";
-                case 2 -> "HARD";
-                case 3 -> "MULTIPLAYER";
-                case 4 -> "SCORE BOARD";
-                default -> "";
-            };
-
-            Font font = (hoveredMenuIndex == hoveredMenuIndex) ? new Font("Arial", Font.BOLD, 56) : new Font("Arial", Font.BOLD, 48);
-            Graphics2D g = (Graphics2D) new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).getGraphics();
-            g.setFont(font);
-            FontMetrics fm = g.getFontMetrics();
-            int textWidth = fm.stringWidth(text);
-            int textHeight = fm.getHeight();
-            int frameWidth = textWidth + 60;
-            int frameHeight = textHeight + 20;
-
-            int frameX = xCenter - frameWidth / 2;
-            int frameY = menuYPositions[hoveredMenuIndex] - frameHeight / 2;
-
-            Rectangle frameBounds = new Rectangle(frameX, frameY, frameWidth, frameHeight);
-
-            if (frameBounds.contains(x, y)) {
-                switch (hoveredMenuIndex) {
-                    case 0 -> {
-                        gameLevel = GameLevel.EASY;
-                        snake.reset();
-                        score = 0;
-                        obstacle.setObstacleCount(5);
-                        obstacle.regenerate();
-                        gameScreen = GameScreen.GAME;
-                    }
-                    case 1 -> {
-                        gameLevel = GameLevel.MEDIUM;
-                        snake.reset();
-                        score = 0;
-                        obstacle.setObstacleCount(10);
-                        obstacle.regenerate();
-                        gameScreen = GameScreen.GAME;
-                    }
-                    case 2 -> {
-                        gameLevel = GameLevel.HARD;
-                        snake.reset();
-                        score = 0;
-                        obstacle.setObstacleCount(15);
-                        obstacle.regenerate();
-                        gameScreen = GameScreen.GAME;
-                    }
-                    case 3 -> gameScreen = GameScreen.MULTIPLAYER_MENU;
-                    case 4 -> gameScreen = GameScreen.SCORE_BOARD;
-                }
-            }
-        }
-        if ((gameScreen == GameScreen.SCORE_BOARD || gameScreen == GameScreen.MULTIPLAYER_MENU)
-                && backButtonBounds != null && backButtonBounds.contains(x, y)) {
-            hoveredMenuIndex=-1;
-            hoveredBackButton = false;
-            gameScreen = GameScreen.MENU;
-            return;
-        }
-    }
-
-
-    public void onMouseMove(int mouseX, int mouseY, int panelWidth, int panelHeight) {
-        if (gameScreen == GameScreen.MENU && menuYPositions.length > 0) {
-            hoveredMenuIndex = -1;
-            int xCenter = panelWidth / 2;
-
-            for (int i = 0; i < menuYPositions.length; i++) {
-                String text = switch (i) {
+            String text = switch (gameScreen) {
+                case MENU -> switch (hoveredMenuIndex) {
                     case 0 -> "EASY";
                     case 1 -> "MEDIUM";
                     case 2 -> "HARD";
@@ -379,8 +306,104 @@ public class Game {
                     case 4 -> "SCORE BOARD";
                     default -> "";
                 };
+                case MULTIPLAYER_MENU -> switch (hoveredMenuIndex) {
+                    case 0 -> "PLAYER VS PLAYER";
+                    case 1 -> "PLAYER VS AI";
+                    case 2 -> "AI VS AI";
+                    default -> "";
+                };
+                default -> "";
+            };
 
-                Font font = (i == hoveredMenuIndex) ? new Font("Arial", Font.BOLD, 56) : new Font("Arial", Font.BOLD, 48);
+            Font font = new Font("Arial", Font.BOLD, 56);
+            Graphics2D g = (Graphics2D) new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).getGraphics();
+            g.setFont(font);
+            FontMetrics fm = g.getFontMetrics();
+            int textWidth = fm.stringWidth(text);
+            int textHeight = fm.getHeight();
+            int frameWidth = textWidth + 60;
+            int frameHeight = textHeight + 20;
+            int frameX = xCenter - frameWidth / 2;
+            int frameY = menuYPositions[hoveredMenuIndex] - frameHeight / 2;
+
+            Rectangle frameBounds = new Rectangle(frameX, frameY, frameWidth, frameHeight);
+
+            if (frameBounds.contains(x, y)) {
+                if (gameScreen == GameScreen.MENU) {
+                    switch (hoveredMenuIndex) {
+                        case 0 -> {
+                            gameLevel = GameLevel.EASY;
+                            snake.reset();
+                            score = 0;
+                            obstacle.setObstacleCount(5);
+                            obstacle.regenerate();
+                            gameScreen = GameScreen.GAME;
+                        }
+                        case 1 -> {
+                            gameLevel = GameLevel.MEDIUM;
+                            snake.reset();
+                            score = 0;
+                            obstacle.setObstacleCount(10);
+                            obstacle.regenerate();
+                            gameScreen = GameScreen.GAME;
+                        }
+                        case 2 -> {
+                            gameLevel = GameLevel.HARD;
+                            snake.reset();
+                            score = 0;
+                            obstacle.setObstacleCount(15);
+                            obstacle.regenerate();
+                            gameScreen = GameScreen.GAME;
+                        }
+                        case 3 -> gameScreen = GameScreen.MULTIPLAYER_MENU;
+                        case 4 -> gameScreen = GameScreen.SCORE_BOARD;
+                    }
+                } else if (gameScreen == GameScreen.MULTIPLAYER_MENU) {
+                    // TODO: dodaj realną logikę dla tych opcji
+                    switch (hoveredMenuIndex) {
+                        case 0 -> System.out.println("PLAYER VS PLAYER selected");
+                        case 1 -> System.out.println("PLAYER VS AI selected");
+                        case 2 -> System.out.println("AI VS AI selected");
+                    }
+                }
+            }
+        }
+
+        if ((gameScreen == GameScreen.SCORE_BOARD || gameScreen == GameScreen.MULTIPLAYER_MENU)
+                && backButtonBounds != null && backButtonBounds.contains(x, y)) {
+            hoveredMenuIndex = -1;
+            hoveredBackButton = false;
+            gameScreen = GameScreen.MENU;
+        }
+    }
+
+
+    public void onMouseMove(int mouseX, int mouseY, int panelWidth) {
+        if ((gameScreen == GameScreen.MENU || gameScreen == GameScreen.MULTIPLAYER_MENU)
+                && menuYPositions.length > 0) {
+            hoveredMenuIndex = -1;
+            int xCenter = panelWidth / 2;
+
+            for (int i = 0; i < menuYPositions.length; i++) {
+                String text = switch (gameScreen) {
+                    case MENU -> switch (i) {
+                        case 0 -> "EASY";
+                        case 1 -> "MEDIUM";
+                        case 2 -> "HARD";
+                        case 3 -> "MULTIPLAYER";
+                        case 4 -> "SCORE BOARD";
+                        default -> "";
+                    };
+                    case MULTIPLAYER_MENU -> switch (i) {
+                        case 0 -> "PLAYER VS PLAYER";
+                        case 1 -> "PLAYER VS AI";
+                        case 2 -> "AI VS AI";
+                        default -> "";
+                    };
+                    default -> "";
+                };
+
+                Font font = new Font("Arial", Font.BOLD, 50);
                 Graphics2D g = (Graphics2D) new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB).getGraphics();
                 g.setFont(font);
                 FontMetrics fm = g.getFontMetrics();
@@ -400,10 +423,10 @@ public class Game {
                 }
             }
         }
+
         if ((gameScreen == GameScreen.SCORE_BOARD || gameScreen == GameScreen.MULTIPLAYER_MENU)
                 && backButtonBounds != null) {
             hoveredBackButton = backButtonBounds.contains(mouseX, mouseY);
-
         }
     }
 

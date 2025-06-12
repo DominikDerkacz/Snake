@@ -49,7 +49,7 @@ public class Snake {
         // Rysuj głowę bez przesunięcia
         switch (type) {
             case AI1 -> pictures.drawSnakeAI1Head(g, x, y, angle, cellSize, cellSize);
-            case AI2 -> pictures.drawSnakeAI2Head(g, x, y, angle, cellSize, cellSize);
+            case AI2, AI3 -> pictures.drawSnakeAI2Head(g, x, y, angle, cellSize, cellSize);
             default -> pictures.drawSnakeHead(g, x, y, angle, cellSize, cellSize);
         }
 
@@ -58,7 +58,7 @@ public class Snake {
             Point segment = tail.get(i);
             switch (type) {
                 case AI1 -> pictures.drawSnakeAI1(g, segment.x * cellSize, segment.y * cellSize, cellSize, cellSize);
-                case AI2 -> pictures.drawSnakeAI2(g, segment.x * cellSize, segment.y * cellSize, cellSize, cellSize);
+                case AI2, AI3 -> pictures.drawSnakeAI2(g, segment.x * cellSize, segment.y * cellSize, cellSize, cellSize);
                 default -> pictures.drawSnake(g, segment.x * cellSize, segment.y * cellSize, cellSize, cellSize);
             }
         }

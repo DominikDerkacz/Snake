@@ -1,63 +1,8 @@
-@startuml ProjectOverview
-top to bottom direction
-skinparam nodesep 10
-skinparam ranksep 20
-skinparam classAttributeIconSize 0
-
-' === ENUMY ===
-enum Direction
-enum GameLevel
-enum GameScreen
-enum SnakeType
-
-' === KLASY ===
-class Main
-class GamePanel
-class Game
-class Board
-class Pictures
-class Food
-class Frog
-class Obstacle
-class Snake
-class ScoreEntry
-class ScoreDataBase
-
-' === RELACJE ===
-Main --> GamePanel
-GamePanel --> Game
-Game --> Board
-Game --> Pictures
-Game --> Snake
-Game --> Food
-Game --> Frog
-Game --> Obstacle
-Game --> ScoreDataBase
-Game --> GameScreen
-Game --> GameLevel
-Game --> SnakeType
-
-GamePanel --> GameScreen
-
-Food --> Board
-Food --> Pictures
-Food --> Obstacle
-Food --> Snake
-
-Frog --> Board
-Frog --> Pictures
-Frog --> Obstacle
-Frog --> Snake
-
-Obstacle --> Board
-Obstacle --> Snake
-
-Snake --> Board
-Snake --> Pictures
-Snake --> Direction
-Snake --> SnakeType
-
-ScoreEntry --> GameLevel
-ScoreDataBase --> ScoreEntry
-
+@startuml GameScreen
+' === ENUM: GameScreen ===
+enum GameScreen {
+  MENU
+  GAME
+  SCORE_BOARD
+}
 @enduml

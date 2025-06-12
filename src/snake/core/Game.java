@@ -7,17 +7,28 @@ import java.awt.event.KeyEvent;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.List;
+
+import snake.core.AISnake;
+import snake.core.SnakeController;
+import snake.core.FoodManager;
+import snake.core.Frog;
 
 
 public class Game {
     private GameScreen gameScreen = GameScreen.MENU;
     private GameLevel gameLevel = GameLevel.EASY;
     private final Pictures pictures;
-    private final Food food;
     private final Board board;
-    private final Snake snake;
+    private final Snake playerSnake;
+    private final AISnake aiSnake1;
+    private final AISnake aiSnake2;
+    private final SnakeController playerController;
+    private final FoodManager foodManager;
+    private final Frog frog;
     private final Obstacle obstacle;
+    private final List<Thread> threads = new ArrayList<>();
     private int score = 0;
     private int hoveredMenuIndex = -1;
     private final ScoreDataBase scoreDataBase = new ScoreDataBase();
@@ -31,19 +42,53 @@ public class Game {
     public Game(Board board, Pictures pictures) {
         this.board = board;
         this.pictures = pictures;
-        this.snake = new Snake(board, pictures);
-        this.obstacle = new Obstacle(board, 0); // najpierw przeszkody
-        this.obstacle.setSnake(snake);
-        this.food = new Food(board, pictures, obstacle); // potem jedzenie
+        this.playerSnake = new Snake(board, pictures);
+        this.obstacle = new Obstacle(board, 0);
+        this.obstacle.setSnake(playerSnake);
+
+        this.aiSnake1 = new AISnake(board, pictures, obstacle, List.of(playerSnake), 0.1f);
+        this.aiSnake2 = new AISnake(board, pictures, obstacle, List.of(playerSnake, aiSnake1), 0.1f);
+
+        List<Snake> allSnakes = new ArrayList<>();
+        allSnakes.add(playerSnake);
+        allSnakes.add(aiSnake1);
+        allSnakes.add(aiSnake2);
+
+        this.foodManager = new FoodManager(board, pictures, obstacle, allSnakes, 3);
+        this.frog = new Frog(board, obstacle, allSnakes);
+        this.playerController = new SnakeController(playerSnake, delayForLevel());
+
+        startThreads();
         hoveredBackButton = false;
 
+    }
+
+    private void startThreads() {
+        Thread t1 = new Thread(playerController);
+        Thread t2 = new Thread(aiSnake1);
+        Thread t3 = new Thread(aiSnake2);
+        Thread t4 = new Thread(foodManager);
+        Thread t5 = new Thread(frog);
+        t1.start();
+        t2.start();
+        t3.start();
+        t4.start();
+        t5.start();
+        threads.add(t1);
+        threads.add(t2);
+        threads.add(t3);
+        threads.add(t4);
+        threads.add(t5);
     }
 
     public void draw(Graphics2D g, int panelWidth, int panelHeight) {
         if (gameScreen == GameScreen.GAME) {
             board.drawBoard(g);
-            snake.draw(g);
-            food.draw(g);
+            playerSnake.draw(g);
+            aiSnake1.draw(g);
+            aiSnake2.draw(g);
+            foodManager.draw(g);
+            frog.draw(g);
             drawScore(g, panelWidth);
             obstacle.draw(g);
 
@@ -62,25 +107,42 @@ public class Game {
 
     public void update() {
         if (gameScreen == GameScreen.GAME) {
-            snake.update();
-            food.updateAnimation();
             handleFoodCollision();
+            handleFrogCollision();
             handleTailCollision();
             handleWallCollision();
             handleObstacleCollision();
+            handleAiCollision();
         }
     }
 
     public void handleFoodCollision() {
-        if (snake.getTail().getFirst().equals(food.position)) {
+        Point head = playerSnake.getTail().getFirst();
+        if (foodManager.consume(head)) {
             score++;
-            food.regenerate();
-            snake.addTail();
+            playerSnake.addTail();
+        }
+    }
+
+    private void handleFrogCollision() {
+        Point head = playerSnake.getTail().getFirst();
+        if (head.equals(frog.getPosition())) {
+            score += 3;
+        }
+    }
+
+    private void handleAiCollision() {
+        Point head = playerSnake.getTail().getFirst();
+        for (Snake ai : List.of(aiSnake1, aiSnake2)) {
+            if (ai.getTail().contains(head)) {
+                resetGame();
+                return;
+            }
         }
     }
 
     private void handleObstacleCollision() {
-        Point head = snake.getTail().getFirst();
+        Point head = playerSnake.getTail().getFirst();
         for (Point p : obstacle.getObstacles()) {
             if (p.equals(head)) {
                 resetGame();
@@ -91,7 +153,7 @@ public class Game {
 
 
     public void handleTailCollision() {
-        List<Point> tail = snake.getTail();
+        List<Point> tail = playerSnake.getTail();
         Point head = tail.getFirst();
         for (int i = 1; i < tail.size(); i++) {
             if (head.equals(tail.get(i))) {
@@ -102,14 +164,15 @@ public class Game {
     }
 
     public void handleWallCollision() {
-        Point head = snake.getTail().getFirst();
+        Point head = playerSnake.getTail().getFirst();
         if (head.x < 0 || head.y < 0 || head.x >= board.getCellCount() || head.y >= board.getCellCount()) {
             resetGame();
         }
     }
 
+
     public boolean shouldMove() {
-        return snake.moveTime(delayForLevel());
+        return false; // movement handled by threads
     }
 
     private float delayForLevel() {
@@ -122,10 +185,10 @@ public class Game {
 
     public void onKeyPress(int keyCode) {
         if (gameScreen == GameScreen.GAME) {
-            if (keyCode == KeyEvent.VK_UP) snake.moveDirection(Direction.UP);
-            if (keyCode == KeyEvent.VK_DOWN) snake.moveDirection(Direction.DOWN);
-            if (keyCode == KeyEvent.VK_LEFT) snake.moveDirection(Direction.LEFT);
-            if (keyCode == KeyEvent.VK_RIGHT) snake.moveDirection(Direction.RIGHT);
+            if (keyCode == KeyEvent.VK_UP) playerSnake.moveDirection(Direction.UP);
+            if (keyCode == KeyEvent.VK_DOWN) playerSnake.moveDirection(Direction.DOWN);
+            if (keyCode == KeyEvent.VK_LEFT) playerSnake.moveDirection(Direction.LEFT);
+            if (keyCode == KeyEvent.VK_RIGHT) playerSnake.moveDirection(Direction.RIGHT);
         }
 
         // Wyjście z SCORE_BOARD do menu
@@ -285,8 +348,10 @@ public class Game {
     private void resetGame() {
         scoreDataBase.addScore(score, gameLevel);
 
-        snake.reset();
-        food.regenerate();
+        playerSnake.reset();
+        aiSnake1.reset();
+        aiSnake2.reset();
+        frog.reset();
         obstacle.regenerate();
         score = 0;
         gameScreen = GameScreen.MENU;
@@ -333,7 +398,10 @@ public class Game {
                     switch (hoveredMenuIndex) {
                         case 0 -> {
                             gameLevel = GameLevel.EASY;
-                            snake.reset();
+                            playerSnake.reset();
+                            aiSnake1.reset();
+                            aiSnake2.reset();
+                            frog.reset();
                             score = 0;
                             obstacle.setObstacleCount(5);
                             obstacle.regenerate();
@@ -341,7 +409,10 @@ public class Game {
                         }
                         case 1 -> {
                             gameLevel = GameLevel.MEDIUM;
-                            snake.reset();
+                            playerSnake.reset();
+                            aiSnake1.reset();
+                            aiSnake2.reset();
+                            frog.reset();
                             score = 0;
                             obstacle.setObstacleCount(10);
                             obstacle.regenerate();
@@ -349,7 +420,10 @@ public class Game {
                         }
                         case 2 -> {
                             gameLevel = GameLevel.HARD;
-                            snake.reset();
+                            playerSnake.reset();
+                            aiSnake1.reset();
+                            aiSnake2.reset();
+                            frog.reset();
                             score = 0;
                             obstacle.setObstacleCount(15);
                             obstacle.regenerate();

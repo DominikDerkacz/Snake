@@ -120,6 +120,7 @@ public class Game {
         if (frog.getPosition() != null && frog.getPosition().equals(head)) {
             score += 2;
             snake.addTail();
+            snake.addTail();
             frog.eaten();
         }
     }

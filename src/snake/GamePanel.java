@@ -32,10 +32,8 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Mou
         this.game = new Game(board, pictures);
 
         int delayMs = 16; // ok. 60 FPS
-        Timer timer = new Timer(delayMs, _ -> {
-            if (game.shouldMove()) {
-                game.update();
-            }
+        Timer timer = new Timer(delayMs, e -> {
+            game.update();
             repaint();
         });
         timer.start();

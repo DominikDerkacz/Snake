@@ -113,4 +113,8 @@ public class Snake {
     public Direction getDirection() {
         return direction;
     }
+
+    public Board getBoard() {
+        return board;
+    }
 }

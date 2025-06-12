@@ -13,12 +13,18 @@ public class Food {
     private float fruitScale = 1.0f;
     private float scaleDirection = 0.09f; // szybka animacja
     private Obstacle obstacle; // przeszkody
+    private final List<Snake> snakes;
+
+    public Food(Board board, Pictures pictures, Obstacle obstacle, int fruitCount, List<Snake> snakes) {
 
     public Food(Board board, Pictures pictures, Obstacle obstacle, int fruitCount) {
+
         this.board = board;
         this.pictures = pictures;
         this.obstacle = obstacle;
         this.fruitCount = fruitCount;
+
+        this.snakes = snakes;
         regenerate();
     }
 
@@ -29,8 +35,22 @@ public class Food {
             int x = random.nextInt(board.getCellCount());
             int y = random.nextInt(board.getCellCount());
             p = new Point(x, y);
+
+        } while (obstacle.getObstacles().contains(p) || positions.contains(p) || onSnake(p)); // unika kolizji z przeszkodą, wężami i innym owocem
+
         } while (obstacle.getObstacles().contains(p) || positions.contains(p)); // unika kolizji z przeszkodą i innym owocem
+
         return p;
+    }
+
+    private boolean onSnake(Point p) {
+        for (Snake s : snakes) {
+            if (!s.isAlive()) continue;
+            for (Point seg : s.getTail()) {
+                if (seg.equals(p)) return true;
+            }
+        }
+        return false;
     }
 
     public void regenerate() {

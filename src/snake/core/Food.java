@@ -76,15 +76,6 @@ public class Food {
         }
     }
 
-    // Respawn a random fruit at a new position with a new type
-    public void respawnRandom() {
-        if (positions.isEmpty()) return;
-        Random rand = new Random();
-        int idx = rand.nextInt(positions.size());
-        positions.set(idx, getRandomPos());
-        types.set(idx, randomFruit());
-    }
-
 
     public int getType(int index) {
         return types.get(index);

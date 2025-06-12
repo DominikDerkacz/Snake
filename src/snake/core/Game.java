@@ -21,6 +21,7 @@ public class Game {
     private final Snake snakeAI1;
     private final Snake snakeAI2;
     private final Obstacle obstacle;
+    private final Frog frog;
     private int score = 0;
     private int hoveredMenuIndex = -1;
     private final ScoreDataBase scoreDataBase = new ScoreDataBase();
@@ -42,6 +43,7 @@ public class Game {
         this.obstacle = new Obstacle(board, 0); // najpierw przeszkody
         this.obstacle.setSnakes(List.of(snake, snakeAI1, snakeAI2));
         this.food = new Food(board, pictures, obstacle, 5, List.of(snake, snakeAI1, snakeAI2)); // potem jedzenie
+        this.frog = new Frog(board, pictures, obstacle, List.of(snake, snakeAI1, snakeAI2));
         hoveredBackButton = false;
 
     }
@@ -53,6 +55,7 @@ public class Game {
             snakeAI1.draw(g);
             snakeAI2.draw(g);
             food.draw(g);
+            frog.draw(g);
             drawScore(g, panelWidth);
             obstacle.draw(g);
 
@@ -83,7 +86,9 @@ public class Game {
             }
 
             food.updateAnimation();
+            frog.update();
             handleFoodCollision();
+            handleFrogCollision();
             handleTailCollision();
             handleWallCollision();
             handleObstacleCollision();
@@ -108,6 +113,15 @@ public class Game {
 
         checkAIFoodCollision(snakeAI1);
         checkAIFoodCollision(snakeAI2);
+    }
+
+    private void handleFrogCollision() {
+        Point head = snake.getTail().getFirst();
+        if (frog.getPosition() != null && frog.getPosition().equals(head)) {
+            score += 2;
+            snake.addTail();
+            frog.eaten();
+        }
     }
 
     private void checkAIFoodCollision(Snake ai) {
@@ -458,6 +472,7 @@ public class Game {
         snakeAI2.reset();
         food.regenerate();
         obstacle.regenerate();
+        frog.eaten();
         score = 0;
         gameScreen = GameScreen.MENU;
     }

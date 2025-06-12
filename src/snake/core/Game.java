@@ -310,7 +310,7 @@ public class Game {
         g.setColor(Color.YELLOW);
         g.fillRect(0, 0, panelWidth, panelHeight);
 
-        String[] levels = {"EASY", "MEDIUM", "HARD", "MULTIPLAYER", "SCORE BOARD"};
+        String[] levels = {"EASY", "MEDIUM", "HARD", "SCORE BOARD"};
         int xCenter = panelWidth / 2;
         int totalItems = levels.length;
         int topMargin = 140; // opcjonalny margines od góry
@@ -462,8 +462,7 @@ public class Game {
                     case 0 -> "EASY";
                     case 1 -> "MEDIUM";
                     case 2 -> "HARD";
-                    case 3 -> "MULTIPLAYER";
-                    case 4 -> "SCORE BOARD";
+                    case 3 -> "SCORE BOARD";
                     default -> "";
                 };
                 case MULTIPLAYER_MENU -> switch (hoveredMenuIndex) {
@@ -515,8 +514,7 @@ public class Game {
                             obstacle.regenerate();
                             gameScreen = GameScreen.GAME;
                         }
-                        case 3 -> gameScreen = GameScreen.MULTIPLAYER_MENU;
-                        case 4 -> gameScreen = GameScreen.SCORE_BOARD;
+                        case 3 -> gameScreen = GameScreen.SCORE_BOARD;
                     }
                 } else if (gameScreen == GameScreen.MULTIPLAYER_MENU) {
                     // TODO: dodaj realną logikę dla tych opcji
@@ -550,8 +548,7 @@ public class Game {
                         case 0 -> "EASY";
                         case 1 -> "MEDIUM";
                         case 2 -> "HARD";
-                        case 3 -> "MULTIPLAYER";
-                        case 4 -> "SCORE BOARD";
+                        case 3 -> "SCORE BOARD";
                         default -> "";
                     };
                     case MULTIPLAYER_MENU -> switch (i) {

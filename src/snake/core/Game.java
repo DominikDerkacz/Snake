@@ -22,6 +22,7 @@ public class Game {
     private final Snake snakeAI2;
     private final Obstacle obstacle;
     private final Frog frog;
+    private final Thread aiThread;
     private int score = 0;
     private int hoveredMenuIndex = -1;
     private final ScoreDataBase scoreDataBase = new ScoreDataBase();
@@ -45,6 +46,10 @@ public class Game {
         this.food = new Food(board, pictures, obstacle, 5, List.of(snake, snakeAI1, snakeAI2)); // potem jedzenie
         this.frog = new Frog(board, pictures, obstacle, List.of(snake, snakeAI1, snakeAI2));
         hoveredBackButton = false;
+
+        aiThread = new Thread(this::runAiLoop, "AI-Loop");
+        aiThread.setDaemon(true);
+        aiThread.start();
 
     }
 
@@ -74,19 +79,9 @@ public class Game {
 
     public void update() {
         if (gameScreen == GameScreen.GAME) {
-            if (snake.isGameRunning()) {
-                if (snakeAI1.isAlive()) updateAISnake(snakeAI1, snakeAI2);
-                if (snakeAI2.isAlive()) updateAISnake(snakeAI2, snakeAI1);
-            }
-
             snake.update();
-            if (snake.isGameRunning()) {
-                if (snakeAI1.isAlive()) snakeAI1.update();
-                if (snakeAI2.isAlive()) snakeAI2.update();
-            }
 
             food.updateAnimation();
-            frog.update();
             handleFoodCollision();
             handleFrogCollision();
             handleTailCollision();
@@ -312,6 +307,28 @@ public class Game {
 
     public boolean shouldMove() {
         return snake.moveTime(delayForLevel());
+    }
+
+    private void runAiLoop() {
+        while (true) {
+            try {
+                Thread.sleep((long) (delayForLevel() * 1000));
+            } catch (InterruptedException e) {
+                return;
+            }
+            updateAiEntities();
+        }
+    }
+
+    private void updateAiEntities() {
+        if (gameScreen != GameScreen.GAME) return;
+        if (snake.isGameRunning()) {
+            if (snakeAI1.isAlive()) updateAISnake(snakeAI1, snakeAI2);
+            if (snakeAI2.isAlive()) updateAISnake(snakeAI2, snakeAI1);
+            if (snakeAI1.isAlive()) snakeAI1.update();
+            if (snakeAI2.isAlive()) snakeAI2.update();
+        }
+        frog.update();
     }
 
     private float delayForLevel() {

@@ -317,8 +317,8 @@ public class Game {
     private float delayForLevel() {
         return switch (gameLevel) {
             case EASY -> 0.1f;
-            case MEDIUM -> 0.05f;
-            case HARD -> 0.015f;
+            case MEDIUM -> 0.1f;
+            case HARD -> 0.1f;
         };
     }
 
@@ -539,7 +539,7 @@ public class Game {
                             gameLevel = GameLevel.EASY;
                             snake.reset();
                             score = 0;
-                            obstacle.setObstacleCount(5);
+                            obstacle.setObstacleCount(10);
                             obstacle.regenerate();
                             gameScreen = GameScreen.GAME;
                         }
@@ -547,7 +547,7 @@ public class Game {
                             gameLevel = GameLevel.MEDIUM;
                             snake.reset();
                             score = 0;
-                            obstacle.setObstacleCount(10);
+                            obstacle.setObstacleCount(20);
                             obstacle.regenerate();
                             gameScreen = GameScreen.GAME;
                         }
@@ -555,7 +555,7 @@ public class Game {
                             gameLevel = GameLevel.HARD;
                             snake.reset();
                             score = 0;
-                            obstacle.setObstacleCount(15);
+                            obstacle.setObstacleCount(30);
                             obstacle.regenerate();
                             gameScreen = GameScreen.GAME;
                         }

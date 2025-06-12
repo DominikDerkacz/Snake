@@ -32,6 +32,12 @@ public class Game {
     private int dragOffsetY = 0;
     private boolean hoveredBackButton;
 
+    // Threads handling AI movement, fruit respawn and frog updates
+    private Thread aiThread1;
+    private Thread aiThread2;
+    private Thread frogThread;
+    private Thread fruitThread;
+
     public Game(Board board, Pictures pictures) {
         this.board = board;
         this.pictures = pictures;
@@ -45,6 +51,8 @@ public class Game {
         this.food = new Food(board, pictures, obstacle, 5, List.of(snake, snakeAI1, snakeAI2)); // potem jedzenie
         this.frog = new Frog(board, pictures, obstacle, List.of(snake, snakeAI1, snakeAI2));
         hoveredBackButton = false;
+
+        startThreads();
 
     }
 
@@ -74,19 +82,8 @@ public class Game {
 
     public void update() {
         if (gameScreen == GameScreen.GAME) {
-            if (snake.isGameRunning()) {
-                if (snakeAI1.isAlive()) updateAISnake(snakeAI1, snakeAI2);
-                if (snakeAI2.isAlive()) updateAISnake(snakeAI2, snakeAI1);
-            }
-
             snake.update();
-            if (snake.isGameRunning()) {
-                if (snakeAI1.isAlive()) snakeAI1.update();
-                if (snakeAI2.isAlive()) snakeAI2.update();
-            }
-
             food.updateAnimation();
-            frog.update();
             handleFoodCollision();
             handleFrogCollision();
             handleTailCollision();
@@ -810,6 +807,71 @@ public class Game {
         FontMetrics fm = new Canvas().getFontMetrics(new Font("Monospaced", Font.PLAIN, 20));
         int lineHeight = fm.getHeight();
         return (computeYEnd(panelHeight) - computeYStart(panelHeight)) / lineHeight;
+    }
+
+    // Start background threads for AI snakes, frog movement and fruit respawn
+    private void startThreads() {
+        aiThread1 = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException ignored) {}
+                if (gameScreen == GameScreen.GAME && snake.isGameRunning() && snakeAI1.moveTime(delayForLevel())) {
+                    synchronized (this) {
+                        updateAISnake(snakeAI1, snakeAI2);
+                        snakeAI1.update();
+                    }
+                }
+            }
+        });
+        aiThread1.setDaemon(true);
+        aiThread1.start();
+
+        aiThread2 = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException ignored) {}
+                if (gameScreen == GameScreen.GAME && snake.isGameRunning() && snakeAI2.moveTime(delayForLevel())) {
+                    synchronized (this) {
+                        updateAISnake(snakeAI2, snakeAI1);
+                        snakeAI2.update();
+                    }
+                }
+            }
+        });
+        aiThread2.setDaemon(true);
+        aiThread2.start();
+
+        frogThread = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException ignored) {}
+                if (gameScreen == GameScreen.GAME) {
+                    synchronized (this) {
+                        frog.update();
+                    }
+                }
+            }
+        });
+        frogThread.setDaemon(true);
+        frogThread.start();
+
+        fruitThread = new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException ignored) {}
+                if (gameScreen == GameScreen.GAME) {
+                    synchronized (this) {
+                        food.respawnRandom();
+                    }
+                }
+            }
+        });
+        fruitThread.setDaemon(true);
+        fruitThread.start();
     }
     public void stopDraggingScrollbar() {
         draggingThumb = false;

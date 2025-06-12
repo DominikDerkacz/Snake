@@ -16,16 +16,16 @@ public class Food {
     private final List<Snake> snakes;
 
     public Food(Board board, Pictures pictures, Obstacle obstacle, int fruitCount, List<Snake> snakes) {
-
-    public Food(Board board, Pictures pictures, Obstacle obstacle, int fruitCount) {
-
         this.board = board;
         this.pictures = pictures;
         this.obstacle = obstacle;
         this.fruitCount = fruitCount;
-
         this.snakes = snakes;
         regenerate();
+    }
+
+    public Food(Board board, Pictures pictures, Obstacle obstacle, int fruitCount) {
+        this(board, pictures, obstacle, fruitCount, List.of());
     }
 
     public Point getRandomPos() {
@@ -35,11 +35,7 @@ public class Food {
             int x = random.nextInt(board.getCellCount());
             int y = random.nextInt(board.getCellCount());
             p = new Point(x, y);
-
         } while (obstacle.getObstacles().contains(p) || positions.contains(p) || onSnake(p)); // unika kolizji z przeszkodą, wężami i innym owocem
-
-        } while (obstacle.getObstacles().contains(p) || positions.contains(p)); // unika kolizji z przeszkodą i innym owocem
-
         return p;
     }
 

@@ -44,8 +44,6 @@ public class Game {
 
         this.food = new Food(board, pictures, obstacle, 5, List.of(snake, snakeAI1, snakeAI2)); // potem jedzenie
 
-        this.food = new Food(board, pictures, obstacle, 5); // potem jedzenie
-
         hoveredBackButton = false;
 
     }
@@ -57,9 +55,6 @@ public class Game {
 
             if (snakeAI1.isAlive()) snakeAI1.draw(g);
             if (snakeAI2.isAlive()) snakeAI2.draw(g);
-
-            snakeAI1.draw(g);
-            snakeAI2.draw(g);
 
             food.draw(g);
             drawScore(g, panelWidth);
@@ -87,13 +82,6 @@ public class Game {
             snake.update();
             if (snakeAI1.isAlive()) snakeAI1.update();
             if (snakeAI2.isAlive()) snakeAI2.update();
-
-            updateAISnake(snakeAI1, snakeAI2);
-            updateAISnake(snakeAI2, snakeAI1);
-
-            snake.update();
-            snakeAI1.update();
-            snakeAI2.update();
 
 
             food.updateAnimation();

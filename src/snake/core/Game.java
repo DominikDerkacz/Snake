@@ -66,10 +66,7 @@ public class Game {
         else if (gameScreen == GameScreen.SCORE_BOARD) {
             drawScoreBoard(g, panelWidth, panelHeight);
         }
-        else if (gameScreen == GameScreen.MULTIPLAYER_MENU)
-        {
-            drawMultiplayer(g, panelWidth, panelHeight);
-        }
+        
     }
 
     public void update() {
@@ -331,8 +328,7 @@ public class Game {
         }
 
         // Wyjście z SCORE_BOARD do menu
-        if ((gameScreen == GameScreen.SCORE_BOARD || gameScreen == GameScreen.MULTIPLAYER_MENU)
-                && keyCode == KeyEvent.VK_ESCAPE) {
+        if (gameScreen == GameScreen.SCORE_BOARD && keyCode == KeyEvent.VK_ESCAPE) {
             hoveredMenuIndex=-1;
             hoveredBackButton = false;
             gameScreen = GameScreen.MENU;
@@ -404,85 +400,6 @@ public class Game {
         }
     }
 
-    private void drawMultiplayer(Graphics2D g, int panelWidth, int panelHeight) {
-        g.setColor(Color.YELLOW);
-        g.fillRect(0, 0, panelWidth, panelHeight);
-
-        String[] levels = {"PLAYER VS PLAYER", "PLAYER VS AI", "AI VS AI"};
-        int xCenter = panelWidth / 2;
-        int totalItems = levels.length;
-        int topMargin = 140; // opcjonalny margines od góry
-        int bottomMargin = 300; // i od dołu
-        int usableHeight = panelHeight - topMargin - bottomMargin;
-        int spacing = usableHeight / (totalItems - 1); // równe odstępy
-
-        int[] yPositions = new int[totalItems];
-        for (int i = 0; i < totalItems; i++) {
-            yPositions[i] = topMargin + i * spacing;
-        }
-        this.menuYPositions = yPositions;
-
-        for (int i = 0; i < levels.length; i++) {
-            String text = levels[i];
-
-            // Mniejsza czcionka (np. 48 i 56 dla hovera)
-            Font font = (i == hoveredMenuIndex) ? new Font("Arial", Font.BOLD, 56) : new Font("Arial", Font.BOLD, 45);
-            g.setFont(font);
-            FontMetrics fm = g.getFontMetrics();
-
-            int textWidth = fm.stringWidth(text);
-            int textHeight = fm.getHeight();
-            int textAscent = fm.getAscent();
-
-            // Ramka dopasowana do rozmiaru tekstu + margines
-            int marginX = 30;
-            int marginY = 20;
-
-            int frameWidth = textWidth + marginX * 2;
-            int frameHeight = textHeight + marginY;
-
-            int frameX = xCenter - frameWidth / 2;
-            int frameY = yPositions[i] - frameHeight / 2;
-            int textY = frameY + (frameHeight - textHeight) / 2 + textAscent;
-            int textX = xCenter - textWidth / 2;
-
-
-            // Rysowanie tekstu
-            g.setColor(Color.BLACK);
-            g.drawString(text, textX, textY);
-
-            // Rysowanie ramki (jeśli najechane)
-            if (i == hoveredMenuIndex) {
-                pictures.drawFrame(g, frameX, frameY, frameWidth, frameHeight);
-            }
-        }
-        // === Przycisk BACK TO MENU ===
-        String backText = "BACK TO MENU (ESC)";
-        Font backFont = new Font("Arial", Font.BOLD, hoveredBackButton ? 42 : 36);
-        g.setFont(backFont);
-        FontMetrics fmBack = g.getFontMetrics();
-
-        int textWidth = fmBack.stringWidth(backText);
-        int textHeight = fmBack.getHeight();
-        int X = panelWidth / 2;
-        int backX = X - textWidth / 2;
-        int backY = panelHeight - 40;
-
-        g.setColor(Color.BLACK);
-        g.drawString(backText, backX, backY);
-
-        int frameX = backX - 20;
-        int frameY = backY - textHeight;
-        int frameWidth = textWidth + 40;
-        int frameHeight = textHeight + 20;
-
-        backButtonBounds = new Rectangle(frameX, frameY, frameWidth, frameHeight);
-
-        if (hoveredBackButton) {
-            pictures.drawFrame(g, frameX, frameY, frameWidth, frameHeight);
-        }
-    }
-
 
     private void resetGame() {
         scoreDataBase.addScore(score, gameLevel);
@@ -498,7 +415,7 @@ public class Game {
     }
 
     public void onMouseClick(int x, int y, int panelWidth) {
-        if ((gameScreen == GameScreen.MENU || gameScreen == GameScreen.MULTIPLAYER_MENU)
+        if (gameScreen == GameScreen.MENU
                 && hoveredMenuIndex != -1 && menuYPositions.length > hoveredMenuIndex) {
 
             int xCenter = panelWidth / 2;
@@ -508,12 +425,6 @@ public class Game {
                     case 1 -> "MEDIUM";
                     case 2 -> "HARD";
                     case 3 -> "SCORE BOARD";
-                    default -> "";
-                };
-                case MULTIPLAYER_MENU -> switch (hoveredMenuIndex) {
-                    case 0 -> "PLAYER VS PLAYER";
-                    case 1 -> "PLAYER VS AI";
-                    case 2 -> "AI VS AI";
                     default -> "";
                 };
                 default -> "";
@@ -561,18 +472,11 @@ public class Game {
                         }
                         case 3 -> gameScreen = GameScreen.SCORE_BOARD;
                     }
-                } else if (gameScreen == GameScreen.MULTIPLAYER_MENU) {
-                    // TODO: dodaj realną logikę dla tych opcji
-                    switch (hoveredMenuIndex) {
-                        case 0 -> System.out.println("PLAYER VS PLAYER selected");
-                        case 1 -> System.out.println("PLAYER VS AI selected");
-                        case 2 -> System.out.println("AI VS AI selected");
-                    }
                 }
             }
         }
 
-        if ((gameScreen == GameScreen.SCORE_BOARD || gameScreen == GameScreen.MULTIPLAYER_MENU)
+        if (gameScreen == GameScreen.SCORE_BOARD
                 && backButtonBounds != null && backButtonBounds.contains(x, y)) {
             hoveredMenuIndex = -1;
             hoveredBackButton = false;
@@ -582,7 +486,7 @@ public class Game {
 
 
     public void onMouseMove(int mouseX, int mouseY, int panelWidth) {
-        if ((gameScreen == GameScreen.MENU || gameScreen == GameScreen.MULTIPLAYER_MENU)
+        if (gameScreen == GameScreen.MENU
                 && menuYPositions.length > 0) {
             hoveredMenuIndex = -1;
             int xCenter = panelWidth / 2;
@@ -594,12 +498,6 @@ public class Game {
                         case 1 -> "MEDIUM";
                         case 2 -> "HARD";
                         case 3 -> "SCORE BOARD";
-                        default -> "";
-                    };
-                    case MULTIPLAYER_MENU -> switch (i) {
-                        case 0 -> "PLAYER VS PLAYER";
-                        case 1 -> "PLAYER VS AI";
-                        case 2 -> "AI VS AI";
                         default -> "";
                     };
                     default -> "";
@@ -626,7 +524,7 @@ public class Game {
             }
         }
 
-        if ((gameScreen == GameScreen.SCORE_BOARD || gameScreen == GameScreen.MULTIPLAYER_MENU)
+        if (gameScreen == GameScreen.SCORE_BOARD
                 && backButtonBounds != null) {
             hoveredBackButton = backButtonBounds.contains(mouseX, mouseY);
         }

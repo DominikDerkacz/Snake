@@ -71,12 +71,16 @@ public class Game {
 
     public void update() {
         if (gameScreen == GameScreen.GAME) {
-            if (snakeAI1.isAlive()) updateAISnake(snakeAI1, snakeAI2);
-            if (snakeAI2.isAlive()) updateAISnake(snakeAI2, snakeAI1);
+            if (snake.isGameRunning()) {
+                if (snakeAI1.isAlive()) updateAISnake(snakeAI1, snakeAI2);
+                if (snakeAI2.isAlive()) updateAISnake(snakeAI2, snakeAI1);
+            }
 
             snake.update();
-            if (snakeAI1.isAlive()) snakeAI1.update();
-            if (snakeAI2.isAlive()) snakeAI2.update();
+            if (snake.isGameRunning()) {
+                if (snakeAI1.isAlive()) snakeAI1.update();
+                if (snakeAI2.isAlive()) snakeAI2.update();
+            }
 
             food.updateAnimation();
             handleFoodCollision();

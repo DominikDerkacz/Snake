@@ -41,7 +41,7 @@ public class Game {
                 new Point(7, 12), new Point(6, 12), new Point(5, 12)));
         this.obstacle = new Obstacle(board, 0); // najpierw przeszkody
         this.obstacle.setSnake(snake);
-        this.food = new Food(board, pictures, obstacle, 5); // potem jedzenie
+        this.food = new Food(board, pictures, obstacle, 5, List.of(snake, snakeAI1, snakeAI2)); // potem jedzenie
         hoveredBackButton = false;
 
     }

@@ -22,7 +22,11 @@ public class Obstacle {
         Random rand = new Random();
         int cellCount = board.getCellCount();
 
-        while (obstacles.size() < obstacleCount) {
+        int attempts = 0;
+        int maxAttempts = obstacleCount * 100;
+
+        while (obstacles.size() < obstacleCount && attempts < maxAttempts) {
+            attempts++;
             Point candidate = new Point(rand.nextInt(cellCount), rand.nextInt(cellCount));
 
             boolean tooClose = false;

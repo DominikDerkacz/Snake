@@ -51,13 +51,13 @@ public class Game {
     public void draw(Graphics2D g, int panelWidth, int panelHeight) {
         if (gameScreen == GameScreen.GAME) {
             board.drawBoard(g);
+            obstacle.draw(g);
             snake.draw(g);
             snakeAI1.draw(g);
             snakeAI2.draw(g);
             food.draw(g);
             frog.draw(g);
             drawScore(g, panelWidth);
-            obstacle.draw(g);
 
         }
         else if (gameScreen == GameScreen.MENU) {
@@ -313,9 +313,7 @@ public class Game {
 
     private float delayForLevel() {
         return switch (gameLevel) {
-            case EASY -> 0.1f;
-            case MEDIUM -> 0.1f;
-            case HARD -> 0.1f;
+            case EASY, HARD, MEDIUM -> 0.1f;
         };
     }
 
@@ -407,8 +405,8 @@ public class Game {
         snake.reset();
         snakeAI1.reset();
         snakeAI2.reset();
-        food.regenerate();
         obstacle.regenerate();
+        food.regenerate();
         frog.eaten();
         score = 0;
         gameScreen = GameScreen.MENU;
@@ -452,6 +450,7 @@ public class Game {
                             score = 0;
                             obstacle.setObstacleCount(10);
                             obstacle.regenerate();
+                            food.regenerate();
                             gameScreen = GameScreen.GAME;
                         }
                         case 1 -> {
@@ -460,6 +459,7 @@ public class Game {
                             score = 0;
                             obstacle.setObstacleCount(20);
                             obstacle.regenerate();
+                            food.regenerate();
                             gameScreen = GameScreen.GAME;
                         }
                         case 2 -> {
@@ -468,6 +468,7 @@ public class Game {
                             score = 0;
                             obstacle.setObstacleCount(30);
                             obstacle.regenerate();
+                            food.regenerate();
                             gameScreen = GameScreen.GAME;
                         }
                         case 3 -> gameScreen = GameScreen.SCORE_BOARD;

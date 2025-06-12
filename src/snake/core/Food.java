@@ -77,7 +77,7 @@ public class Food {
 
     public void updateAnimation() {
         fruitScale += scaleDirection;
-        if (fruitScale >= 1.1f || fruitScale <= 0.9f) {
+        if (fruitScale >= 1.4f || fruitScale <= 1.0f) {
             scaleDirection *= -1;
         }
     }

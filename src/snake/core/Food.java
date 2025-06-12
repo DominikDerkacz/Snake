@@ -5,6 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Klasa {@code Food} reprezentuje obiekty jedzenia na planszy gry Snake.
+ * Obsługuje losowanie pozycji owoców, ich rysowanie, kolizje z przeszkodami i wężami,
+ * a także prostą animację pulsującą.
+ */
 public class Food {
     private final Board board;
     private final Pictures pictures;
@@ -12,12 +17,26 @@ public class Food {
     public List<Point> positions = new ArrayList<>();
     private final List<Integer> types = new ArrayList<>();
 
+    /**
+     * Stała określająca indeks złotego jabłka w zestawie grafik owoców.
+     */
     public static final int GOLDEN_APPLE_INDEX = 3;
+
     private float fruitScale = 1.0f;
-    private float scaleDirection = 0.09f; // szybka animacja
-    private Obstacle obstacle; // przeszkody
+    private float scaleDirection = 0.09f;
+
+    private Obstacle obstacle;
     private final List<Snake> snakes;
 
+    /**
+     * Tworzy nowy obiekt {@code Food} z określoną liczbą owoców oraz wężami do uwzględnienia w kolizjach.
+     *
+     * @param board       obiekt planszy gry
+     * @param pictures    obiekt rysujący grafiki owoców
+     * @param obstacle    przeszkody na planszy
+     * @param fruitCount  liczba owoców do wygenerowania
+     * @param snakes      lista węży, których ogony mają być uwzględnione przy losowaniu pozycji
+     */
     public Food(Board board, Pictures pictures, Obstacle obstacle, int fruitCount, List<Snake> snakes) {
         this.board = board;
         this.pictures = pictures;
@@ -27,10 +46,23 @@ public class Food {
         regenerate();
     }
 
+    /**
+     * Tworzy nowy obiekt {@code Food} bez węży (np. dla trybu jednoosobowego).
+     *
+     * @param board       obiekt planszy gry
+     * @param pictures    obiekt rysujący grafiki owoców
+     * @param obstacle    przeszkody na planszy
+     * @param fruitCount  liczba owoców do wygenerowania
+     */
     public Food(Board board, Pictures pictures, Obstacle obstacle, int fruitCount) {
         this(board, pictures, obstacle, fruitCount, List.of());
     }
 
+    /**
+     * Losuje nową pozycję dla owocu z uwzględnieniem przeszkód, innych owoców oraz pozycji węży.
+     *
+     * @return losowo wybrany punkt na planszy, który jest wolny
+     */
     public Point getRandomPos() {
         Random random = new Random();
         Point p;
@@ -38,10 +70,16 @@ public class Food {
             int x = random.nextInt(board.getCellCount());
             int y = random.nextInt(board.getCellCount());
             p = new Point(x, y);
-        } while (obstacle.getObstacles().contains(p) || positions.contains(p) || onSnake(p)); // unika kolizji z przeszkodą, wężami i innym owocem
+        } while (obstacle.getObstacles().contains(p) || positions.contains(p) || onSnake(p));
         return p;
     }
 
+    /**
+     * Sprawdza, czy dany punkt pokrywa się z ogonem któregokolwiek węża.
+     *
+     * @param p punkt do sprawdzenia
+     * @return {@code true}, jeśli punkt koliduje z wężem; {@code false} w przeciwnym razie
+     */
     private boolean onSnake(Point p) {
         for (Snake s : snakes) {
             if (!s.isAlive()) continue;
@@ -54,11 +92,19 @@ public class Food {
         return false;
     }
 
+    /**
+     * Losuje indeks typu owocu do narysowania.
+     *
+     * @return indeks graficzny owocu
+     */
     private int randomFruit() {
         Random rand = new Random();
         return rand.nextInt(pictures.getFruitCount());
     }
 
+    /**
+     * Regeneruje wszystkie owoce – losuje nowe pozycje i typy.
+     */
     public void regenerate() {
         positions.clear();
         types.clear();
@@ -68,6 +114,11 @@ public class Food {
         }
     }
 
+    /**
+     * Zastępuje zjedzony owoc nowym w losowej pozycji i z nowym typem.
+     *
+     * @param eaten pozycja zjedzonego owocu
+     */
     public void replace(Point eaten) {
         int idx = positions.indexOf(eaten);
         if (idx != -1) {
@@ -76,11 +127,21 @@ public class Food {
         }
     }
 
-
+    /**
+     * Zwraca typ owocu (indeks graficzny) o danym indeksie.
+     *
+     * @param index indeks owocu
+     * @return typ owocu
+     */
     public int getType(int index) {
         return types.get(index);
     }
 
+    /**
+     * Rysuje wszystkie owoce na planszy z uwzględnieniem skalowania (animacji).
+     *
+     * @param g obiekt {@code Graphics2D} do rysowania
+     */
     public void draw(Graphics2D g) {
         int baseSize = board.getCellSize();
         int scaledSize = (int) (baseSize * fruitScale);
@@ -95,6 +156,9 @@ public class Food {
         }
     }
 
+    /**
+     * Aktualizuje skalowanie owoców do animacji pulsowania.
+     */
     public void updateAnimation() {
         fruitScale += scaleDirection;
         if (fruitScale >= 1.4f || fruitScale <= 1.0f) {

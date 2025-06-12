@@ -5,6 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Klasa {@code Frog} reprezentuje żabę, która okresowo pojawia się na planszy.
+ * Unika węży i przeszkód, porusza się rzadziej niż wąż, a po zjedzeniu znika i pojawia się ponownie po pewnym czasie.
+ */
 public class Frog {
     private final Board board;
     private final Pictures pictures;
@@ -14,13 +18,22 @@ public class Frog {
 
     private Point position;
     private long lastMoveMillis = System.currentTimeMillis();
-    private long nextSpawnTime = 0; // millis
+    private long nextSpawnTime = 0;
 
-    // movement delay in seconds (slower than snake)
+    /** Opóźnienie ruchu żaby względem czasu (w sekundach). */
     private static final float MOVE_DELAY = 0.3f;
-    // respawn delay after being eaten (in seconds)
+
+    /** Opóźnienie ponownego pojawienia się żaby po zjedzeniu (w sekundach). */
     private static final float RESPAWN_DELAY = 5f;
 
+    /**
+     * Tworzy nowy obiekt {@code Frog} i od razu umieszcza żabę na planszy.
+     *
+     * @param board    plansza gry
+     * @param pictures obiekt rysujący żabę
+     * @param obstacle obiekt z przeszkodami
+     * @param snakes   lista węży, których obecność jest uwzględniana w logice ruchu żaby
+     */
     public Frog(Board board, Pictures pictures, Obstacle obstacle, List<Snake> snakes) {
         this.board = board;
         this.pictures = pictures;
@@ -29,11 +42,17 @@ public class Frog {
         spawn();
     }
 
+    /** Losuje nową pozycję żaby i resetuje czas ostatniego ruchu. */
     private void spawn() {
         position = getRandomPos();
         lastMoveMillis = System.currentTimeMillis();
     }
 
+    /**
+     * Losuje pozycję na planszy, która nie koliduje z wężami ani przeszkodami.
+     *
+     * @return nowa, bezpieczna pozycja żaby
+     */
     private Point getRandomPos() {
         Point p;
         do {
@@ -44,6 +63,12 @@ public class Frog {
         return p;
     }
 
+    /**
+     * Sprawdza, czy dany punkt koliduje z jakimkolwiek wężem.
+     *
+     * @param p punkt do sprawdzenia
+     * @return {@code true}, jeśli punkt jest zajęty przez węża
+     */
     private boolean onSnake(Point p) {
         for (Snake s : snakes) {
             if (!s.isAlive()) continue;
@@ -56,6 +81,9 @@ public class Frog {
         return false;
     }
 
+    /**
+     * Aktualizuje stan żaby – wykonuje ruch lub generuje nową żabę po respawnie.
+     */
     public void update() {
         long current = System.currentTimeMillis();
         if (position == null) {
@@ -70,10 +98,13 @@ public class Frog {
         }
     }
 
+    /**
+     * Przesuwa żabę w kierunku przeciwnym do najbliższego węża (ucieczka).
+     */
     private void moveAwayFromSnakes() {
         if (position == null) return;
         List<Point> candidates = new ArrayList<>();
-        int[][] moves = {{0,-1},{0,1},{-1,0},{1,0}};
+        int[][] moves = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
         for (int[] m : moves) {
             Point np = new Point(position.x + m[0], position.y + m[1]);
             if (isSafe(np)) {
@@ -94,6 +125,12 @@ public class Frog {
         position = best;
     }
 
+    /**
+     * Oblicza dystans Manhattan do najbliższego segmentu dowolnego żywego węża.
+     *
+     * @param p punkt do sprawdzenia
+     * @return minimalna odległość od któregoś z segmentów węża
+     */
     private int distanceToNearestSnake(Point p) {
         int best = Integer.MAX_VALUE;
         for (Snake s : snakes) {
@@ -106,6 +143,12 @@ public class Frog {
         return best;
     }
 
+    /**
+     * Sprawdza, czy punkt znajduje się w granicach planszy i nie koliduje z przeszkodami ani wężami.
+     *
+     * @param p punkt do sprawdzenia
+     * @return {@code true}, jeśli punkt jest bezpieczny
+     */
     private boolean isSafe(Point p) {
         if (p.x < 0 || p.y < 0 || p.x >= board.getCellCount() || p.y >= board.getCellCount())
             return false;
@@ -113,18 +156,31 @@ public class Frog {
         return !onSnake(p);
     }
 
+    /**
+     * Rysuje żabę na planszy, jeśli jest obecna.
+     *
+     * @param g obiekt graficzny do rysowania
+     */
     public void draw(Graphics2D g) {
         if (position == null) return;
         int size = board.getCellSize();
         pictures.drawFrog(g, position.x * size, position.y * size, size, size);
     }
 
+    /**
+     * Zwraca bieżącą pozycję żaby.
+     *
+     * @return pozycja żaby lub {@code null}, jeśli nie jest obecna
+     */
     public Point getPosition() {
         return position;
     }
 
+    /**
+     * Oznacza, że żaba została zjedzona – znika i zaczyna odliczać czas do ponownego pojawienia się.
+     */
     public void eaten() {
         position = null;
-        nextSpawnTime = System.currentTimeMillis() + (long)(RESPAWN_DELAY * 1000);
+        nextSpawnTime = System.currentTimeMillis() + (long) (RESPAWN_DELAY * 1000);
     }
 }

@@ -92,11 +92,16 @@ public class Game {
     }
 
     public void handleFoodCollision() {
-        for (Point fruit : food.positions) {
+        for (int i = 0; i < food.positions.size(); i++) {
+            Point fruit = food.positions.get(i);
             if (snake.getTail().getFirst().equals(fruit)) {
-                score++;
+                int type = food.getType(i);
+                score += (type == Food.GOLDEN_APPLE_INDEX) ? 2 : 1;
                 food.replace(fruit);
                 snake.addTail();
+                if (type == Food.GOLDEN_APPLE_INDEX) {
+                    snake.addTail();
+                }
                 break;
             }
         }
@@ -107,10 +112,15 @@ public class Game {
 
     private void checkAIFoodCollision(Snake ai) {
         if (!ai.isAlive()) return;
-        for (Point fruit : food.positions) {
+        for (int i = 0; i < food.positions.size(); i++) {
+            Point fruit = food.positions.get(i);
             if (ai.getTail().getFirst().equals(fruit)) {
+                int type = food.getType(i);
                 food.replace(fruit);
                 ai.addTail();
+                if (type == Food.GOLDEN_APPLE_INDEX) {
+                    ai.addTail();
+                }
                 break;
             }
         }

@@ -16,6 +16,7 @@ public class Pictures {
     private final BufferedImage snakeAI1Head;
     private final BufferedImage snakeAI2;
     private final BufferedImage snakeAI2Head;
+    private final BufferedImage frog;
 
     public Pictures() {
         try {
@@ -32,6 +33,7 @@ public class Pictures {
             snakeAI1Head = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/snakeAI1_Head.png")));
             snakeAI2 = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/snakeAI2.png")));
             snakeAI2Head = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/snakeAI2_Head.png")));
+            frog = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/zaba.png")));
         } catch (IOException | NullPointerException e) {
             throw new RuntimeException("Błąd wczytywania obrazów", e);
         }
@@ -68,6 +70,10 @@ public class Pictures {
 
     public void drawSnakeAI2Head(Graphics2D g, int x, int y, float angle, int width, int height) {
         draw(g, snakeAI2Head, x, y, angle, width, height, true);
+    }
+
+    public void drawFrog(Graphics2D g, int x, int y, int width, int height) {
+        draw(g, frog, x, y, 0, width, height, false);
     }
 
     public void drawFrame(Graphics2D g, int x, int y, int width, int height) {

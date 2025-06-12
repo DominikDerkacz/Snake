@@ -5,8 +5,8 @@ import java.awt.*;
 public class Board {
     private final Color darkGreen = new Color(58, 200, 28);
     private final Color lightGreen = new Color(85, 237, 38);
-    private final int cellSize = 30;
-    private final int cellCount = 20;
+    private final int cellSize = 26;
+    private final int cellCount = 26;
     private final int scoreHeight = 100;
 
     public int getCellSize() {

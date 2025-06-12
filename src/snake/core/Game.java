@@ -20,7 +20,6 @@ public class Game {
     private final Snake snake;
     private final Snake snakeAI1;
     private final Snake snakeAI2;
-    private final Snake snakeAI3;
     private final Obstacle obstacle;
     private final Frog frog;
     private int score = 0;
@@ -41,12 +40,10 @@ public class Game {
                 new Point(12, 6), new Point(11, 6), new Point(10, 6)));
         this.snakeAI2 = new Snake(board, pictures, SnakeType.AI2, List.of(
                 new Point(7, 12), new Point(6, 12), new Point(5, 12)));
-        this.snakeAI3 = new Snake(board, pictures, SnakeType.AI3, List.of(
-                new Point(12, 12), new Point(11, 12), new Point(10, 12)));
         this.obstacle = new Obstacle(board, 0); // najpierw przeszkody
-        this.obstacle.setSnakes(List.of(snake, snakeAI1, snakeAI2, snakeAI3));
-        this.food = new Food(board, pictures, obstacle, 5, List.of(snake, snakeAI1, snakeAI2, snakeAI3)); // potem jedzenie
-        this.frog = new Frog(board, pictures, obstacle, List.of(snake, snakeAI1, snakeAI2, snakeAI3));
+        this.obstacle.setSnakes(List.of(snake, snakeAI1, snakeAI2));
+        this.food = new Food(board, pictures, obstacle, 5, List.of(snake, snakeAI1, snakeAI2)); // potem jedzenie
+        this.frog = new Frog(board, pictures, obstacle, List.of(snake, snakeAI1, snakeAI2));
         hoveredBackButton = false;
 
     }
@@ -58,7 +55,6 @@ public class Game {
             snake.draw(g);
             snakeAI1.draw(g);
             snakeAI2.draw(g);
-            snakeAI3.draw(g);
             food.draw(g);
             frog.draw(g);
             drawScore(g, panelWidth);
@@ -76,16 +72,14 @@ public class Game {
     public void update() {
         if (gameScreen == GameScreen.GAME) {
             if (snake.isGameRunning()) {
-                if (snakeAI1.isAlive()) updateAISnake(snakeAI1, snakeAI2, snakeAI3);
-                if (snakeAI2.isAlive()) updateAISnake(snakeAI2, snakeAI1, snakeAI3);
-                if (snakeAI3.isAlive()) updateAISnake(snakeAI3, snakeAI1, snakeAI2);
+                if (snakeAI1.isAlive()) updateAISnake(snakeAI1, snakeAI2);
+                if (snakeAI2.isAlive()) updateAISnake(snakeAI2, snakeAI1);
             }
 
             snake.update();
             if (snake.isGameRunning()) {
                 if (snakeAI1.isAlive()) snakeAI1.update();
                 if (snakeAI2.isAlive()) snakeAI2.update();
-                if (snakeAI3.isAlive()) snakeAI3.update();
             }
 
             food.updateAnimation();
@@ -116,7 +110,6 @@ public class Game {
 
         checkAIFoodCollision(snakeAI1);
         checkAIFoodCollision(snakeAI2);
-        checkAIFoodCollision(snakeAI3);
     }
 
     private void handleFrogCollision() {
@@ -130,7 +123,6 @@ public class Game {
 
         checkAIFrogCollision(snakeAI1);
         checkAIFrogCollision(snakeAI2);
-        checkAIFrogCollision(snakeAI3);
     }
 
     private void checkAIFrogCollision(Snake ai) {
@@ -191,12 +183,6 @@ public class Game {
                 return;
             }
         }
-        for (Point p : snakeAI3.getTail()) {
-            if (head.equals(p)) {
-                resetGame();
-                return;
-            }
-        }
     }
 
     public void handleWallCollision() {
@@ -207,12 +193,11 @@ public class Game {
     }
 
     private void handleAICollisions() {
-        handleAICollision(snakeAI1, snakeAI2, snakeAI3);
-        handleAICollision(snakeAI2, snakeAI1, snakeAI3);
-        handleAICollision(snakeAI3, snakeAI1, snakeAI2);
+        handleAICollision(snakeAI1, snakeAI2);
+        handleAICollision(snakeAI2, snakeAI1);
     }
 
-    private void handleAICollision(Snake ai, Snake... others) {
+    private void handleAICollision(Snake ai, Snake other) {
         if (!ai.isAlive()) return;
         Point head = ai.getTail().getFirst();
 
@@ -238,14 +223,12 @@ public class Game {
             }
         }
 
-        // collision with other AIs
-        for (Snake other : others) {
-            if (other.isAlive()) {
-                for (Point p : other.getTail()) {
-                    if (head.equals(p)) {
-                        ai.die();
-                        return;
-                    }
+        // collision with other AI
+        if (other.isAlive()) {
+            for (Point p : other.getTail()) {
+                if (head.equals(p)) {
+                    ai.die();
+                    return;
                 }
             }
         }
@@ -260,7 +243,7 @@ public class Game {
         }
     }
 
-    private void updateAISnake(Snake ai, Snake... others) {
+    private void updateAISnake(Snake ai, Snake other) {
         if (!ai.isAlive()) return;
         Point head = ai.getTail().getFirst();
 
@@ -291,7 +274,7 @@ public class Game {
             int nx = head.x + moves[i][0];
             int ny = head.y + moves[i][1];
             Point cand = new Point(nx, ny);
-            if (!isSafe(cand, ai, others)) continue;
+            if (!isSafe(cand, ai, other)) continue;
             int d = Math.abs(target.x - nx) + Math.abs(target.y - ny);
             if (d < bestDist) {
                 bestDist = d;
@@ -304,7 +287,7 @@ public class Game {
         }
     }
 
-    private boolean isSafe(Point p, Snake current, Snake... others) {
+    private boolean isSafe(Point p, Snake current, Snake other) {
         if (p.x < 0 || p.y < 0 || p.x >= board.getCellCount() || p.y >= board.getCellCount())
             return false;
         if (obstacle.getObstacles().contains(p))
@@ -312,11 +295,9 @@ public class Game {
         for (Point seg : snake.getTail()) {
             if (seg.equals(p)) return false;
         }
-        for (Snake other : others) {
-            if (other.isAlive()) {
-                for (Point seg : other.getTail()) {
-                    if (seg.equals(p)) return false;
-                }
+        if (other.isAlive()) {
+            for (Point seg : other.getTail()) {
+                if (seg.equals(p)) return false;
             }
         }
         List<Point> self = current.getTail();
@@ -424,7 +405,6 @@ public class Game {
         snake.reset();
         snakeAI1.reset();
         snakeAI2.reset();
-        snakeAI3.reset();
         obstacle.regenerate();
         food.regenerate();
         frog.eaten();

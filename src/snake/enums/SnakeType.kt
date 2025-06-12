@@ -1,6 +1,6 @@
-package snake.enums;
+package snake.enums
 
-public enum SnakeType {
+enum class SnakeType {
     PLAYER,
     AI1,
     AI2

@@ -41,6 +41,7 @@ public class Food {
 
     private boolean onSnake(Point p) {
         for (Snake s : snakes) {
+            if (!s.isAlive()) continue;
             for (Point seg : s.getTail()) {
                 if (seg.equals(p)) {
                     return true;

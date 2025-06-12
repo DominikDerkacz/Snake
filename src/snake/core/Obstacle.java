@@ -9,7 +9,7 @@ public class Obstacle {
     private final List<Point> obstacles = new ArrayList<>();
     private final Board board;
     private int obstacleCount;
-    private Snake snake;
+    private final List<Snake> snakes = new ArrayList<>();
 
     public Obstacle(Board board, int count) {
         this.board = board;
@@ -37,9 +37,9 @@ public class Obstacle {
                 }
             }
 
-            // Sprawdzenie dystansu do węża
-            if (snake != null) {
-                for (Point segment : snake.getTail()) {
+            // Sprawdzenie dystansu do węży
+            for (Snake s : snakes) {
+                for (Point segment : s.getTail()) {
                     int dx = Math.abs(candidate.x - segment.x);
                     int dy = Math.abs(candidate.y - segment.y);
                     if (dx <= 3 && dy <= 2) {
@@ -47,6 +47,7 @@ public class Obstacle {
                         break;
                     }
                 }
+                if (tooClose) break;
             }
 
             if (!tooClose) {
@@ -71,8 +72,9 @@ public class Obstacle {
         generateObstacles();
     }
 
-    public void setSnake(Snake snake) {
-        this.snake = snake;
+    public void setSnakes(List<Snake> snakes) {
+        this.snakes.clear();
+        this.snakes.addAll(snakes);
     }
 
     public void setObstacleCount(int count) {

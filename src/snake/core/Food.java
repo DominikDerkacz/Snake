@@ -15,10 +15,6 @@ public class Food {
     private float scaleDirection = 0.09f; // szybka animacja
     private Obstacle obstacle; // przeszkody
     private final List<Snake> snakes;
-    private Point goldenApplePos = null;
-    private boolean goldenAppleVisible = false;
-    private long lastGoldenTime = System.currentTimeMillis();
-    private static final int GOLDEN_RESPAWN_MS = 5000;
 
     public Food(Board board, Pictures pictures, Obstacle obstacle, int fruitCount, List<Snake> snakes) {
         this.board = board;
@@ -40,8 +36,7 @@ public class Food {
             int x = random.nextInt(board.getCellCount());
             int y = random.nextInt(board.getCellCount());
             p = new Point(x, y);
-        } while (obstacle.getObstacles().contains(p) || positions.contains(p) || onSnake(p)
-                || (goldenAppleVisible && p.equals(goldenApplePos))); // unika kolizji z przeszkodą, wężami i innym owocem
+        } while (obstacle.getObstacles().contains(p) || positions.contains(p) || onSnake(p)); // unika kolizji z przeszkodą, wężami i innym owocem
         return p;
     }
 
@@ -69,8 +64,6 @@ public class Food {
             positions.add(getRandomPos());
             types.add(randomFruit());
         }
-        goldenAppleVisible = false;
-        lastGoldenTime = System.currentTimeMillis();
     }
 
     public void replace(Point eaten) {
@@ -93,12 +86,6 @@ public class Food {
             int type = types.get(i);
             pictures.drawFruit(g, drawX, drawY, scaledSize, scaledSize, type);
         }
-
-        if (goldenAppleVisible && goldenApplePos != null) {
-            int drawX = goldenApplePos.x * baseSize + offset;
-            int drawY = goldenApplePos.y * baseSize + offset;
-            pictures.drawFruit(g, drawX, drawY, scaledSize, scaledSize, 3);
-        }
     }
 
     public void updateAnimation() {
@@ -106,21 +93,5 @@ public class Food {
         if (fruitScale >= 1.4f || fruitScale <= 1.0f) {
             scaleDirection *= -1;
         }
-    }
-
-    public void update() {
-        if (!goldenAppleVisible && System.currentTimeMillis() - lastGoldenTime >= GOLDEN_RESPAWN_MS) {
-            goldenApplePos = getRandomPos();
-            goldenAppleVisible = true;
-        }
-    }
-
-    public boolean isGoldenApple(Point p) {
-        return goldenAppleVisible && goldenApplePos != null && goldenApplePos.equals(p);
-    }
-
-    public void consumeGoldenApple() {
-        goldenAppleVisible = false;
-        lastGoldenTime = System.currentTimeMillis();
     }
 }

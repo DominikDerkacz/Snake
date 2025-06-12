@@ -22,7 +22,6 @@ public class Game {
     private final Snake snakeAI2;
     private final Obstacle obstacle;
     private int score = 0;
-    private boolean doubleScore = false;
     private int hoveredMenuIndex = -1;
     private final ScoreDataBase scoreDataBase = new ScoreDataBase();
     private int[] menuYPositions = new int[0];
@@ -83,7 +82,6 @@ public class Game {
                 if (snakeAI2.isAlive()) snakeAI2.update();
             }
 
-            food.update();
             food.updateAnimation();
             handleFoodCollision();
             handleTailCollision();
@@ -94,20 +92,12 @@ public class Game {
     }
 
     public void handleFoodCollision() {
-        Point head = snake.getTail().getFirst();
-
-        if (food.isGoldenApple(head)) {
-            doubleScore = true;
-            food.consumeGoldenApple();
-            snake.addTail();
-        } else {
-            for (Point fruit : food.positions) {
-                if (head.equals(fruit)) {
-                    score += doubleScore ? 2 : 1;
-                    food.replace(fruit);
-                    snake.addTail();
-                    break;
-                }
+        for (Point fruit : food.positions) {
+            if (snake.getTail().getFirst().equals(fruit)) {
+                score++;
+                food.replace(fruit);
+                snake.addTail();
+                break;
             }
         }
 
@@ -117,14 +107,8 @@ public class Game {
 
     private void checkAIFoodCollision(Snake ai) {
         if (!ai.isAlive()) return;
-        Point head = ai.getTail().getFirst();
-        if (food.isGoldenApple(head)) {
-            food.consumeGoldenApple();
-            ai.addTail();
-            return;
-        }
         for (Point fruit : food.positions) {
-            if (head.equals(fruit)) {
+            if (ai.getTail().getFirst().equals(fruit)) {
                 food.replace(fruit);
                 ai.addTail();
                 break;
@@ -465,7 +449,6 @@ public class Game {
         food.regenerate();
         obstacle.regenerate();
         score = 0;
-        doubleScore = false;
         gameScreen = GameScreen.MENU;
     }
 

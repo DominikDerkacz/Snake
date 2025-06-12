@@ -11,11 +11,7 @@ public class Food {
     private final int fruitCount;
     public List<Point> positions = new ArrayList<>();
     private final List<Integer> types = new ArrayList<>();
-    /**
-     * Index in the {@link #types} list representing the golden apple.
-     * The order of fruits is defined in {@link Pictures} where the golden
-     * apple is loaded as the fourth image.
-     */
+
     public static final int GOLDEN_APPLE_INDEX = 3;
     private float fruitScale = 1.0f;
     private float scaleDirection = 0.09f; // szybka animacja
@@ -80,10 +76,7 @@ public class Food {
         }
     }
 
-    /**
-     * Returns the type of fruit at the given index. The returned value
-     * corresponds to the order of images loaded in {@link Pictures}.
-     */
+
     public int getType(int index) {
         return types.get(index);
     }

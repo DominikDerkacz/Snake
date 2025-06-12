@@ -123,6 +123,18 @@ public class Game {
             snake.addTail();
             frog.eaten();
         }
+
+        checkAIFrogCollision(snakeAI1);
+        checkAIFrogCollision(snakeAI2);
+    }
+
+    private void checkAIFrogCollision(Snake ai) {
+        if (!ai.isAlive() || frog.getPosition() == null) return;
+        if (ai.getTail().getFirst().equals(frog.getPosition())) {
+            ai.addTail();
+            ai.addTail();
+            frog.eaten();
+        }
     }
 
     private void checkAIFoodCollision(Snake ai) {
@@ -245,6 +257,13 @@ public class Game {
             if (dist < best) {
                 best = dist;
                 target = fruit;
+            }
+        }
+        if (frog.getPosition() != null) {
+            int dist = Math.abs(frog.getPosition().x - head.x) + Math.abs(frog.getPosition().y - head.y);
+            if (dist < best) {
+                best = dist;
+                target = frog.getPosition();
             }
         }
         if (target == null) return;

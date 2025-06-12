@@ -10,6 +10,7 @@ public class Food {
     private final Pictures pictures;
     private final int fruitCount;
     public List<Point> positions = new ArrayList<>();
+    private final List<Integer> types = new ArrayList<>();
     private float fruitScale = 1.0f;
     private float scaleDirection = 0.09f; // szybka animacja
     private Obstacle obstacle; // przeszkody
@@ -51,16 +52,26 @@ public class Food {
         return false;
     }
 
+    private int randomFruit() {
+        Random rand = new Random();
+        return rand.nextInt(pictures.getFruitCount());
+    }
+
     public void regenerate() {
         positions.clear();
+        types.clear();
         for (int i = 0; i < fruitCount; i++) {
             positions.add(getRandomPos());
+            types.add(randomFruit());
         }
     }
 
     public void replace(Point eaten) {
-        positions.remove(eaten);
-        positions.add(getRandomPos());
+        int idx = positions.indexOf(eaten);
+        if (idx != -1) {
+            positions.set(idx, getRandomPos());
+            types.set(idx, randomFruit());
+        }
     }
 
     public void draw(Graphics2D g) {
@@ -68,10 +79,12 @@ public class Food {
         int scaledSize = (int) (baseSize * fruitScale);
         int offset = (baseSize - scaledSize) / 2;
 
-        for (Point p : positions) {
+        for (int i = 0; i < positions.size(); i++) {
+            Point p = positions.get(i);
             int drawX = p.x * baseSize + offset;
             int drawY = p.y * baseSize + offset;
-            pictures.drawFruit(g, drawX, drawY, scaledSize, scaledSize);
+            int type = types.get(i);
+            pictures.drawFruit(g, drawX, drawY, scaledSize, scaledSize, type);
         }
     }
 

@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 public class Pictures {
-    private final BufferedImage fruit;
+    private final BufferedImage[] fruits;
     private final BufferedImage snake;
     private final BufferedImage snakeHead;
     private final BufferedImage frame;
@@ -19,7 +19,12 @@ public class Pictures {
 
     public Pictures() {
         try {
-            fruit = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/fruit.png")));
+            BufferedImage fruit = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/fruit.png")));
+            BufferedImage apple = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/jablko.png")));
+            BufferedImage cherry = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/wisnie.png")));
+            BufferedImage goldApple = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/zlote_jablko.png")));
+            this.fruits = new BufferedImage[]{fruit, apple, cherry, goldApple};
+
             snake = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/snake.png")));
             snakeHead = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/snakeHead.png")));
             frame = ImageIO.read(Objects.requireNonNull(getClass().getResourceAsStream("/frame.png")));
@@ -32,8 +37,13 @@ public class Pictures {
         }
     }
 
-    public void drawFruit(Graphics2D g, int x, int y, int width, int height) {
-        draw(g, fruit, x, y, 0, width, height, false);
+    public void drawFruit(Graphics2D g, int x, int y, int width, int height, int type) {
+        if (type < 0 || type >= fruits.length) type = 0;
+        draw(g, fruits[type], x, y, 0, width, height, false);
+    }
+
+    public int getFruitCount() {
+        return fruits.length;
     }
 
     public void drawSnake(Graphics2D g, int x, int y, int width, int height) {

@@ -14,7 +14,9 @@ public class Snake {
     private final List<Point> tailStart;
 
     public List<Point> tail;
+
     private boolean alive = true;
+
     private Point move = new Point(1, 0);
     private Direction direction = Direction.RIGHT;
     private boolean gameRunning = false;

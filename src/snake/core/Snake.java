@@ -1,6 +1,7 @@
 package snake.core;
 
 import snake.enums.Direction;
+import snake.enums.SnakeType;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -9,13 +10,10 @@ import java.util.List;
 public class Snake {
     private final Pictures pictures;
     private final Board board;
-    private final List<Point> tailStart = List.of(
-            new Point(7, 6),
-            new Point(6, 6),
-            new Point(5, 6)
-    );
+    private final SnakeType type;
+    private final List<Point> tailStart;
 
-    public List<Point> tail = new ArrayList<>(tailStart);
+    public List<Point> tail;
     private Point move = new Point(1, 0);
     private Direction direction = Direction.RIGHT;
     private boolean gameRunning = false;
@@ -24,8 +22,19 @@ public class Snake {
     private long lastMoveMillis = System.currentTimeMillis();
 
     public Snake(Board board, Pictures pictures) {
+        this(board, pictures, SnakeType.PLAYER, List.of(
+                new Point(7, 6),
+                new Point(6, 6),
+                new Point(5, 6)
+        ));
+    }
+
+    public Snake(Board board, Pictures pictures, SnakeType type, List<Point> start) {
         this.board = board;
         this.pictures = pictures;
+        this.type = type;
+        this.tailStart = new ArrayList<>(start);
+        this.tail = new ArrayList<>(tailStart);
     }
 
     public void draw(Graphics2D g) {
@@ -35,12 +44,20 @@ public class Snake {
         int y = head.y * cellSize;
 
         // Rysuj głowę bez przesunięcia
-        pictures.drawSnakeHead(g, x, y, angle, cellSize, cellSize);
+        switch (type) {
+            case AI1 -> pictures.drawSnakeAI1Head(g, x, y, angle, cellSize, cellSize);
+            case AI2 -> pictures.drawSnakeAI2Head(g, x, y, angle, cellSize, cellSize);
+            default -> pictures.drawSnakeHead(g, x, y, angle, cellSize, cellSize);
+        }
 
         // Rysuj resztę ogona
         for (int i = 1; i < tail.size(); i++) {
             Point segment = tail.get(i);
-            pictures.drawSnake(g, segment.x * cellSize, segment.y * cellSize, cellSize, cellSize);
+            switch (type) {
+                case AI1 -> pictures.drawSnakeAI1(g, segment.x * cellSize, segment.y * cellSize, cellSize, cellSize);
+                case AI2 -> pictures.drawSnakeAI2(g, segment.x * cellSize, segment.y * cellSize, cellSize, cellSize);
+                default -> pictures.drawSnake(g, segment.x * cellSize, segment.y * cellSize, cellSize, cellSize);
+            }
         }
     }
 

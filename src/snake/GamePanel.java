@@ -17,6 +17,7 @@ import java.awt.event.MouseWheelEvent;
 
 public class GamePanel extends JPanel implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener {
     private final Game game;
+    private final Timer timer;
 
 
     public GamePanel() {
@@ -32,8 +33,10 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Mou
         this.game = new Game(board, pictures);
 
         int delayMs = 16; // ok. 60 FPS
-        Timer timer = new Timer(delayMs, e -> {
-            game.update();
+        timer = new Timer(delayMs, e -> {
+            if (game.shouldMove(0.1f)) {
+                game.update();
+            }
             repaint();
         });
         timer.start();
@@ -61,7 +64,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Mou
     }
     @Override
     public void mouseClicked(MouseEvent e) {
-        game.onMouseClick(e.getX(), e.getY(), getWidth());
+        game.onMouseClick(e.getX(), e.getY(), getWidth(), getHeight());
     }
 
     @Override
@@ -79,7 +82,7 @@ public class GamePanel extends JPanel implements KeyListener, MouseListener, Mou
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        game.onMouseMove(e.getX(), e.getY(), getWidth());
+        game.onMouseMove(e.getX(), e.getY(), getWidth(), getHeight());
         repaint(); // odśwież panel aby ramka się przesunęła
     }
 

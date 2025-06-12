@@ -71,18 +71,19 @@ public class Game {
 
     public void update() {
         if (gameScreen == GameScreen.GAME) {
-            updateAISnake(snakeAI1, snakeAI2);
-            updateAISnake(snakeAI2, snakeAI1);
+            if (snakeAI1.isAlive()) updateAISnake(snakeAI1, snakeAI2);
+            if (snakeAI2.isAlive()) updateAISnake(snakeAI2, snakeAI1);
 
             snake.update();
-            snakeAI1.update();
-            snakeAI2.update();
+            if (snakeAI1.isAlive()) snakeAI1.update();
+            if (snakeAI2.isAlive()) snakeAI2.update();
 
             food.updateAnimation();
             handleFoodCollision();
             handleTailCollision();
             handleWallCollision();
             handleObstacleCollision();
+            handleAICollisions();
         }
     }
 
@@ -101,6 +102,7 @@ public class Game {
     }
 
     private void checkAIFoodCollision(Snake ai) {
+        if (!ai.isAlive()) return;
         for (Point fruit : food.positions) {
             if (ai.getTail().getFirst().equals(fruit)) {
                 food.replace(fruit);
@@ -152,7 +154,59 @@ public class Game {
         }
     }
 
+    private void handleAICollisions() {
+        handleAICollision(snakeAI1, snakeAI2);
+        handleAICollision(snakeAI2, snakeAI1);
+    }
+
+    private void handleAICollision(Snake ai, Snake other) {
+        if (!ai.isAlive()) return;
+        Point head = ai.getTail().getFirst();
+
+        // collision with wall
+        if (head.x < 0 || head.y < 0 || head.x >= board.getCellCount() || head.y >= board.getCellCount()) {
+            ai.die();
+            return;
+        }
+
+        // collision with obstacle
+        for (Point p : obstacle.getObstacles()) {
+            if (p.equals(head)) {
+                ai.die();
+                return;
+            }
+        }
+
+        // collision with player's snake
+        for (Point p : snake.getTail()) {
+            if (head.equals(p)) {
+                resetGame();
+                return;
+            }
+        }
+
+        // collision with other AI
+        if (other.isAlive()) {
+            for (Point p : other.getTail()) {
+                if (head.equals(p)) {
+                    ai.die();
+                    return;
+                }
+            }
+        }
+
+        // collision with own tail
+        List<Point> tail = ai.getTail();
+        for (int i = 1; i < tail.size(); i++) {
+            if (head.equals(tail.get(i))) {
+                ai.die();
+                return;
+            }
+        }
+    }
+
     private void updateAISnake(Snake ai, Snake other) {
+        if (!ai.isAlive()) return;
         Point head = ai.getTail().getFirst();
 
         Point target = null;
@@ -196,8 +250,10 @@ public class Game {
         for (Point seg : snake.getTail()) {
             if (seg.equals(p)) return false;
         }
-        for (Point seg : other.getTail()) {
-            if (seg.equals(p)) return false;
+        if (other.isAlive()) {
+            for (Point seg : other.getTail()) {
+                if (seg.equals(p)) return false;
+            }
         }
         List<Point> self = current.getTail();
         for (int i=0; i<self.size()-1; i++) {

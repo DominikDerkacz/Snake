@@ -13,6 +13,8 @@ public class Snake {
     private final SnakeType type;
     private final List<Point> tailStart;
 
+    private boolean alive = true;
+
     public List<Point> tail;
     private Point move = new Point(1, 0);
     private Direction direction = Direction.RIGHT;
@@ -38,6 +40,7 @@ public class Snake {
     }
 
     public void draw(Graphics2D g) {
+        if (!alive || tail.isEmpty()) return;
         int cellSize = board.getCellSize();
         Point head = tail.get(0);
         int x = head.x * cellSize;
@@ -73,7 +76,7 @@ public class Snake {
     }
 
     public void update() {
-        if (gameRunning) {
+        if (gameRunning && alive) {
             tail.remove(tail.size() - 1);
             Point newHead = new Point(tail.get(0).x + move.x, tail.get(0).y + move.y);
             tail.add(0, newHead);
@@ -81,6 +84,7 @@ public class Snake {
     }
 
     public void moveDirection(Direction dir) {
+        if (!alive) return;
         if (dir == Direction.UP && direction != Direction.DOWN) {
             move.setLocation(0, -1);
             direction = Direction.UP;
@@ -108,7 +112,9 @@ public class Snake {
     }
 
     public void addTail() {
-        tail.add(new Point(tail.get(tail.size() - 1)));
+        if (alive && !tail.isEmpty()) {
+            tail.add(new Point(tail.get(tail.size() - 1)));
+        }
     }
 
     public void reset() {
@@ -117,6 +123,7 @@ public class Snake {
         move.setLocation(1, 0);
         angle = 0;
         gameRunning = false;
+        alive = true;
     }
 
     public boolean isGameRunning() {
@@ -129,5 +136,14 @@ public class Snake {
 
     public Direction getDirection() {
         return direction;
+    }
+
+    public boolean isAlive() {
+        return alive;
+    }
+
+    public void die() {
+        alive = false;
+        tail.clear();
     }
 }

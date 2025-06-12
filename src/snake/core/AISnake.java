@@ -20,10 +20,14 @@ public class AISnake extends Snake implements Runnable {
 
     public AISnake(Board board, Pictures pictures, Obstacle obstacle, List<Snake> others,
                    float delay, List<Point> startTail) {
+
+    public AISnake(Board board, Pictures pictures, Obstacle obstacle, List<Snake> others, float delay) {
+
         super(board, pictures);
         this.obstacle = obstacle;
         this.others = new ArrayList<>(others);
         this.delay = delay;
+
         this.startTail = new ArrayList<>(startTail);
         reset();
     }
@@ -88,6 +92,7 @@ public class AISnake extends Snake implements Runnable {
     public void stop() {
         running = false;
     }
+
 
     @Override
     public void reset() {

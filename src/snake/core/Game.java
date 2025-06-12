@@ -45,7 +45,6 @@ public class Game {
         this.playerSnake = new Snake(board, pictures);
         this.obstacle = new Obstacle(board, 0);
         this.obstacle.setSnake(playerSnake);
-
         this.aiSnake1 = new AISnake(
                 board,
                 pictures,
@@ -62,7 +61,8 @@ public class Game {
                 0.1f,
                 List.of(new Point(7, 16), new Point(6, 16), new Point(5, 16))
         );
-
+        this.aiSnake1 = new AISnake(board, pictures, obstacle, List.of(playerSnake), 0.1f);
+        this.aiSnake2 = new AISnake(board, pictures, obstacle, List.of(playerSnake, aiSnake1), 0.1f);
         List<Snake> allSnakes = new ArrayList<>();
         allSnakes.add(playerSnake);
         allSnakes.add(aiSnake1);

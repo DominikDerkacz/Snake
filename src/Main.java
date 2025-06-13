@@ -4,7 +4,17 @@ import snake.core.Board;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Klasa {@code Main} zawiera metodę główną uruchamiającą grę Snake.
+ * Tworzy planszę, ustala rozmiar okna i wyświetla główny panel gry.
+ */
 public class Main {
+
+    /**
+     * Punkt wejścia do programu. Uruchamia aplikację Snake w osobnym wątku graficznym.
+     *
+     * @param args argumenty wiersza poleceń (nieużywane)
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             // 1. Utwórz planszę, żeby obliczyć rozmiar

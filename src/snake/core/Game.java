@@ -76,8 +76,8 @@ public class Game {
     /** Czy kursor znajduje się nad przyciskiem powrotu do menu. */
     private boolean hoveredBackButton;
 
-    /** Executor do wielowątkowej obsługi AI i żaby. */
-    private final ExecutorService executor = Executors.newFixedThreadPool(3);
+    /** Executor do wielowątkowej obsługi AI, żaby i węża gracza. */
+    private final ExecutorService executor = Executors.newFixedThreadPool(4);
 
     /**
      * Konstruktor klasy {@code Game}.
@@ -157,13 +157,16 @@ public class Game {
                 return null;
             };
 
+            Callable<Void> playerTask = () -> {
+                snake.update();
+                return null;
+            };
+
             try {
-                executor.invokeAll(List.of(ai1Task, ai2Task, frogTask));
+                executor.invokeAll(List.of(ai1Task, ai2Task, frogTask, playerTask));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-
-            snake.update();
             food.updateAnimation();
             handleFoodCollision();
             handleFrogCollision();

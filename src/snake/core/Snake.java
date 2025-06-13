@@ -7,22 +7,55 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Klasa {@code Snake} reprezentuje węża w grze Snake.
+ * Odpowiada za jego pozycję, ruch, rysowanie, długość, kierunek oraz stan (żywy/martwy).
+ * Obsługuje zarówno węża gracza, jak i AI.
+ */
 public class Snake {
+
+    /** Obiekt do rysowania grafik. */
     private final Pictures pictures;
+
+    /** Plansza gry. */
     private final Board board;
+
+    /** Typ węża – gracz lub AI. */
     private final SnakeType type;
+
+    /** Początkowy ogon węża. */
     private final List<Point> tailStart;
 
+    /** Czy wąż jest żywy. */
     private boolean alive = true;
 
+    /** Lista segmentów ogona (pierwszy element to głowa). */
     public List<Point> tail;
+
+    /** Wektor ruchu – określa kierunek przesunięcia głowy. */
     private Point move = new Point(1, 0);
+
+    /** Kierunek ruchu węża. */
     private Direction direction = Direction.RIGHT;
+
+    /** Czy gra została rozpoczęta przez gracza. */
     private boolean gameRunning = false;
+
+    /** Pomocniczy znacznik czasu do pomiaru opóźnienia ruchu. */
     private float lastTime = 0f;
+
+    /** Kąt obrotu głowy węża (dla rysowania). */
     private int angle = 0;
+
+    /** Czas ostatniego ruchu (w milisekundach). */
     private long lastMoveMillis = System.currentTimeMillis();
 
+    /**
+     * Konstruktor domyślny węża gracza z ustalonym pozycjonowaniem startowym.
+     *
+     * @param board plansza gry
+     * @param pictures zasoby graficzne
+     */
     public Snake(Board board, Pictures pictures) {
         this(board, pictures, SnakeType.PLAYER, List.of(
                 new Point(7, 6),
@@ -31,6 +64,14 @@ public class Snake {
         ));
     }
 
+    /**
+     * Konstruktor węża z niestandardowym typem i startową pozycją.
+     *
+     * @param board plansza gry
+     * @param pictures zasoby graficzne
+     * @param type typ węża (gracz, AI1, AI2)
+     * @param start lista punktów startowego ogona
+     */
     public Snake(Board board, Pictures pictures, SnakeType type, List<Point> start) {
         this.board = board;
         this.pictures = pictures;
@@ -39,6 +80,11 @@ public class Snake {
         this.tail = new ArrayList<>(tailStart);
     }
 
+    /**
+     * Rysuje węża (głowę oraz ogon) na planszy.
+     *
+     * @param g kontekst graficzny
+     */
     public void draw(Graphics2D g) {
         if (!alive || tail.isEmpty()) return;
         int cellSize = board.getCellSize();
@@ -46,14 +92,14 @@ public class Snake {
         int x = head.x * cellSize;
         int y = head.y * cellSize;
 
-        // Rysuj głowę bez przesunięcia
+        // Rysuj głowę
         switch (type) {
             case AI1 -> pictures.drawSnakeAI1Head(g, x, y, angle, cellSize, cellSize);
             case AI2 -> pictures.drawSnakeAI2Head(g, x, y, angle, cellSize, cellSize);
             default -> pictures.drawSnakeHead(g, x, y, angle, cellSize, cellSize);
         }
 
-        // Rysuj resztę ogona
+        // Rysuj ogon
         for (int i = 1; i < tail.size(); i++) {
             Point segment = tail.get(i);
             switch (type) {
@@ -64,8 +110,12 @@ public class Snake {
         }
     }
 
-
-
+    /**
+     * Sprawdza, czy minął czas do wykonania kolejnego ruchu.
+     *
+     * @param delay opóźnienie między ruchami (sekundy)
+     * @return true, jeśli ruch powinien się odbyć
+     */
     public boolean moveTime(float delay) {
         long current = System.currentTimeMillis();
         if ((current - lastMoveMillis) / 1000.0f >= delay) {
@@ -75,6 +125,9 @@ public class Snake {
         return false;
     }
 
+    /**
+     * Aktualizuje pozycję węża – przesuwa ogon i dodaje nową głowę.
+     */
     public void update() {
         if (gameRunning && alive) {
             tail.remove(tail.size() - 1);
@@ -83,6 +136,12 @@ public class Snake {
         }
     }
 
+    /**
+     * Ustawia nowy kierunek ruchu, o ile nie jest przeciwny do aktualnego.
+     * Włącza tryb gry przy pierwszym ruchu.
+     *
+     * @param dir nowy kierunek ruchu
+     */
     public void moveDirection(Direction dir) {
         if (!alive) return;
         if (dir == Direction.UP && direction != Direction.DOWN) {
@@ -111,12 +170,18 @@ public class Snake {
         }
     }
 
+    /**
+     * Dodaje jeden segment do ogona węża.
+     */
     public void addTail() {
         if (alive && !tail.isEmpty()) {
             tail.add(new Point(tail.get(tail.size() - 1)));
         }
     }
 
+    /**
+     * Resetuje węża do jego stanu początkowego.
+     */
     public void reset() {
         tail = new ArrayList<>(tailStart);
         direction = Direction.RIGHT;
@@ -126,22 +191,45 @@ public class Snake {
         alive = true;
     }
 
+    /**
+     * Sprawdza, czy gra została uruchomiona.
+     *
+     * @return true, jeśli gra jest aktywna
+     */
     public boolean isGameRunning() {
         return gameRunning;
     }
 
+    /**
+     * Zwraca aktualny ogon węża.
+     *
+     * @return lista punktów ogona
+     */
     public List<Point> getTail() {
         return tail;
     }
 
+    /**
+     * Zwraca aktualny kierunek ruchu węża.
+     *
+     * @return aktualny kierunek
+     */
     public Direction getDirection() {
         return direction;
     }
 
+    /**
+     * Sprawdza, czy wąż żyje.
+     *
+     * @return true, jeśli wąż jest żywy
+     */
     public boolean isAlive() {
         return alive;
     }
 
+    /**
+     * Oznacza węża jako martwego i czyści jego ogon.
+     */
     public void die() {
         alive = false;
         tail.clear();

@@ -9,6 +9,7 @@ import java.awt.event.KeyEvent;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.List;
+import java.util.concurrent.*;
 
 
 /**
@@ -75,6 +76,9 @@ public class Game {
     /** Czy kursor znajduje się nad przyciskiem powrotu do menu. */
     private boolean hoveredBackButton;
 
+    /** Executor do wielowątkowej obsługi AI i żaby. */
+    private final ExecutorService executor = Executors.newFixedThreadPool(3);
+
     /**
      * Konstruktor klasy {@code Game}.
      * Inicjalizuje wszystkie elementy: planszę, węże (gracza i AI), przeszkody, jedzenie, żabę.
@@ -132,19 +136,35 @@ public class Game {
      */
     public void update() {
         if (gameScreen == GameScreen.GAME) {
-            if (snake.isGameRunning()) {
-                if (snakeAI1.isAlive()) updateAISnake(snakeAI1, snakeAI2);
-                if (snakeAI2.isAlive()) updateAISnake(snakeAI2, snakeAI1);
+            Callable<Void> ai1Task = () -> {
+                if (snake.isGameRunning() && snakeAI1.isAlive()) {
+                    updateAISnake(snakeAI1, snakeAI2);
+                    snakeAI1.update();
+                }
+                return null;
+            };
+
+            Callable<Void> ai2Task = () -> {
+                if (snake.isGameRunning() && snakeAI2.isAlive()) {
+                    updateAISnake(snakeAI2, snakeAI1);
+                    snakeAI2.update();
+                }
+                return null;
+            };
+
+            Callable<Void> frogTask = () -> {
+                frog.update();
+                return null;
+            };
+
+            try {
+                executor.invokeAll(List.of(ai1Task, ai2Task, frogTask));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
             }
 
             snake.update();
-            if (snake.isGameRunning()) {
-                if (snakeAI1.isAlive()) snakeAI1.update();
-                if (snakeAI2.isAlive()) snakeAI2.update();
-            }
-
             food.updateAnimation();
-            frog.update();
             handleFoodCollision();
             handleFrogCollision();
             handleTailCollision();

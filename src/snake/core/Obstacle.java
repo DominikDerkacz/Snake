@@ -5,18 +5,39 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Klasa {@code Obstacle} reprezentuje przeszkody pojawiające się na planszy gry Snake.
+ * Przeszkody są losowo generowane z zachowaniem odstępów od siebie oraz od węży.
+ */
 public class Obstacle {
+    /** Lista punktów reprezentujących pozycje przeszkód. */
     private final List<Point> obstacles = new ArrayList<>();
+
+    /** Plansza, na której rozmieszczone są przeszkody. */
     private final Board board;
+
+    /** Liczba przeszkód do wygenerowania. */
     private int obstacleCount;
+
+    /** Lista węży, względem których przeszkody nie mogą być zbyt blisko. */
     private final List<Snake> snakes = new ArrayList<>();
 
+    /**
+     * Tworzy nowy obiekt {@code Obstacle} i generuje przeszkody.
+     *
+     * @param board plansza gry
+     * @param count liczba przeszkód do wygenerowania
+     */
     public Obstacle(Board board, int count) {
         this.board = board;
         this.obstacleCount = count;
         generateObstacles();
     }
 
+    /**
+     * Generuje przeszkody na planszy z zachowaniem minimalnej odległości między nimi i wężami.
+     * Próbuje do skutku lub do przekroczenia limitu prób.
+     */
     private void generateObstacles() {
         obstacles.clear();
         Random rand = new Random();
@@ -28,7 +49,6 @@ public class Obstacle {
         while (obstacles.size() < obstacleCount && attempts < maxAttempts) {
             attempts++;
             Point candidate = new Point(rand.nextInt(cellCount), rand.nextInt(cellCount));
-
             boolean tooClose = false;
 
             // Sprawdzenie dystansu do innych przeszkód
@@ -60,10 +80,20 @@ public class Obstacle {
         }
     }
 
+    /**
+     * Zwraca listę przeszkód.
+     *
+     * @return lista punktów, w których znajdują się przeszkody
+     */
     public List<Point> getObstacles() {
         return obstacles;
     }
 
+    /**
+     * Rysuje przeszkody na planszy.
+     *
+     * @param g kontekst graficzny
+     */
     public void draw(Graphics2D g) {
         g.setColor(Color.DARK_GRAY);
         int size = board.getCellSize();
@@ -72,15 +102,28 @@ public class Obstacle {
         }
     }
 
+    /**
+     * Generuje nowe przeszkody (np. po zmianie poziomu trudności).
+     */
     public void regenerate() {
         generateObstacles();
     }
 
+    /**
+     * Ustawia listę węży, względem których przeszkody powinny zachowywać odległość.
+     *
+     * @param snakes lista węży
+     */
     public void setSnakes(List<Snake> snakes) {
         this.snakes.clear();
         this.snakes.addAll(snakes);
     }
 
+    /**
+     * Ustawia nową liczbę przeszkód do wygenerowania.
+     *
+     * @param count nowa liczba przeszkód
+     */
     public void setObstacleCount(int count) {
         this.obstacleCount = count;
     }

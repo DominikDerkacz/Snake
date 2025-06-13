@@ -1,8 +1,40 @@
-@startuml GameScreen
-' === ENUM: GameScreen ===
-enum GameScreen {
-  MENU
-  GAME
-  SCORE_BOARD
+@startuml Game
+class Game {
+  - gameScreen: GameScreen
+  - gameLevel: GameLevel
+  - pictures: Pictures
+  - food: Food
+  - board: Board
+  - snake: Snake
+  - snakeAI1: Snake
+  - snakeAI2: Snake
+  - obstacle: Obstacle
+  - frog: Frog
+  - score: int
+  - hoveredMenuIndex: int
+  - scoreDataBase: ScoreDataBase
+  - menuYPositions: int[]
+  - backButtonBounds: Rectangle
+  - scrollOffset: int
+  - draggingThumb: boolean
+  - dragOffsetY: int
+  - hoveredBackButton: boolean
+  - executor: ExecutorService
+
+  + Game(board: Board, pictures: Pictures)
+  + draw(g: Graphics2D, panelWidth: int, panelHeight: int): void
+  + update(): void
+  + handleFoodCollision(): void
+  + handleTailCollision(): void
+  + handleWallCollision(): void
+  + adjustScrollOffset(delta: int): void
+  + getGameScreen(): GameScreen
+  + onKeyPress(keyCode: int): void
+  + onMouseClick(x: int, y: int, panelWidth: int): void
+  + onMouseMove(mouseX: int, mouseY: int, panelWidth: int): void
+  + startDraggingScrollbar(mouseX: int, mouseY: int, panelWidth: int, panelHeight: int): void
+  + dragScrollbar(mouseY: int, panelHeight: int): void
+  + stopDraggingScrollbar(): void
+  + shouldMove(): boolean
 }
 @enduml

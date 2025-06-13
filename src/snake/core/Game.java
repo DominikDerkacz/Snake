@@ -11,27 +11,77 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 
 
+/**
+ * Klasa {@code Game} zarządza całym cyklem życia gry Snake.
+ * Obsługuje wszystkie ekrany gry (MENU, GAME, SCORE_BOARD), kontroluje rysowanie i aktualizację gry,
+ * logikę związaną z wężami (w tym AI), jedzeniem, żabą, przeszkodami i punktacją.
+ */
 public class Game {
+
+    /** Aktualny ekran gry: MENU, GAME, SCORE_BOARD, itp. */
     private GameScreen gameScreen = GameScreen.MENU;
+
+    /** Aktualny poziom trudności gry. */
     private GameLevel gameLevel = GameLevel.EASY;
+
+    /** Zasoby graficzne. */
     private final Pictures pictures;
+
+    /** Obiekt zarządzający jedzeniem na planszy. */
     private final Food food;
+
+    /** Plansza gry. */
     private final Board board;
+
+    /** Wąż sterowany przez gracza. */
     private final Snake snake;
+
+    /** Pierwszy wąż AI. */
     private final Snake snakeAI1;
+
+    /** Drugi wąż AI. */
     private final Snake snakeAI2;
+
+    /** Obiekt zarządzający przeszkodami na planszy. */
     private final Obstacle obstacle;
+
+    /** Żaba – dodatkowy cel na planszy. */
     private final Frog frog;
+
+    /** Aktualny wynik gracza. */
     private int score = 0;
+
+    /** Indeks aktualnie podświetlonej opcji w menu. */
     private int hoveredMenuIndex = -1;
+
+    /** Baza danych przechowująca wyniki graczy. */
     private final ScoreDataBase scoreDataBase = new ScoreDataBase();
+
+    /** Pozycje pionowe opcji menu. */
     private int[] menuYPositions = new int[0];
+
+    /** Obszar przycisku powrotu do menu. */
     private Rectangle backButtonBounds = null;
+
+    /** Przesunięcie scrolla w widoku wyników. */
     private int scrollOffset = 0;
+
+    /** Czy scrollbar jest aktualnie przeciągany. */
     private boolean draggingThumb = false;
+
+    /** Wysokość różnicy Y w momencie złapania suwaka. */
     private int dragOffsetY = 0;
+
+    /** Czy kursor znajduje się nad przyciskiem powrotu do menu. */
     private boolean hoveredBackButton;
 
+    /**
+     * Konstruktor klasy {@code Game}.
+     * Inicjalizuje wszystkie elementy: planszę, węże (gracza i AI), przeszkody, jedzenie, żabę.
+     *
+     * @param board plansza gry
+     * @param pictures zasoby graficzne
+     */
     public Game(Board board, Pictures pictures) {
         this.board = board;
         this.pictures = pictures;
@@ -48,6 +98,13 @@ public class Game {
 
     }
 
+    /**
+     * Rysuje aktualny stan gry na ekranie. W zależności od stanu gry wywołuje odpowiednie metody rysujące.
+     *
+     * @param g kontekst graficzny
+     * @param panelWidth szerokość panelu
+     * @param panelHeight wysokość panelu
+     */
     public void draw(Graphics2D g, int panelWidth, int panelHeight) {
         if (gameScreen == GameScreen.GAME) {
             board.drawBoard(g);
@@ -69,6 +126,10 @@ public class Game {
         
     }
 
+    /**
+     * Główna metoda aktualizująca logikę gry.
+     * Wykonuje ruch węży, aktualizuje animacje, sprawdza kolizje.
+     */
     public void update() {
         if (gameScreen == GameScreen.GAME) {
             if (snake.isGameRunning()) {
@@ -93,6 +154,10 @@ public class Game {
         }
     }
 
+    /**
+     * Sprawdza kolizję gracza z owocami. Jeśli nastąpi – dodaje punkty i segment ogona.
+     * Dodatkowo wywołuje sprawdzanie kolizji dla węży AI.
+     */
     public void handleFoodCollision() {
         for (int i = 0; i < food.positions.size(); i++) {
             Point fruit = food.positions.get(i);
@@ -112,6 +177,9 @@ public class Game {
         checkAIFoodCollision(snakeAI2);
     }
 
+    /**
+     * Sprawdza kolizję gracza z żabą. Po zjedzeniu dodaje punkty i segmenty ogona.
+     */
     private void handleFrogCollision() {
         Point head = snake.getTail().getFirst();
         if (frog.getPosition() != null && frog.getPosition().equals(head)) {
@@ -125,6 +193,11 @@ public class Game {
         checkAIFrogCollision(snakeAI2);
     }
 
+    /**
+     * Sprawdza kolizję danego węża AI z żabą.
+     *
+     * @param ai wąż AI
+     */
     private void checkAIFrogCollision(Snake ai) {
         if (!ai.isAlive() || frog.getPosition() == null) return;
         if (ai.getTail().getFirst().equals(frog.getPosition())) {
@@ -134,6 +207,11 @@ public class Game {
         }
     }
 
+    /**
+     * Sprawdza kolizję danego węża AI z owocem.
+     *
+     * @param ai wąż AI
+     */
     private void checkAIFoodCollision(Snake ai) {
         if (!ai.isAlive()) return;
         for (int i = 0; i < food.positions.size(); i++) {
@@ -150,6 +228,10 @@ public class Game {
         }
     }
 
+    /**
+     * Sprawdza kolizję gracza z przeszkodą.
+     * Jeśli nastąpi – resetuje grę.
+     */
     private void handleObstacleCollision() {
         Point head = snake.getTail().getFirst();
         for (Point p : obstacle.getObstacles()) {
@@ -160,7 +242,10 @@ public class Game {
         }
     }
 
-
+    /**
+     * Sprawdza kolizję głowy gracza z jego ogonem oraz ogonami węży AI.
+     * Resetuje grę w przypadku kolizji.
+     */
     public void handleTailCollision() {
         List<Point> tail = snake.getTail();
         Point head = tail.getFirst();
@@ -185,6 +270,10 @@ public class Game {
         }
     }
 
+    /**
+     * Sprawdza, czy głowa węża znajduje się poza planszą.
+     * Jeśli tak – resetuje grę.
+     */
     public void handleWallCollision() {
         Point head = snake.getTail().getFirst();
         if (head.x < 0 || head.y < 0 || head.x >= board.getCellCount() || head.y >= board.getCellCount()) {
@@ -192,11 +281,20 @@ public class Game {
         }
     }
 
+    /**
+     * Sprawdza kolizje AI z przeszkodami, ścianami, graczami i własnym ogonem.
+     */
     private void handleAICollisions() {
         handleAICollision(snakeAI1, snakeAI2);
         handleAICollision(snakeAI2, snakeAI1);
     }
 
+    /**
+     * Obsługuje kolizje konkretnego węża AI z otoczeniem.
+     *
+     * @param ai wąż AI
+     * @param other drugi wąż AI
+     */
     private void handleAICollision(Snake ai, Snake other) {
         if (!ai.isAlive()) return;
         Point head = ai.getTail().getFirst();
@@ -243,6 +341,13 @@ public class Game {
         }
     }
 
+    /**
+     * Prosta logika poruszania się węży AI w stronę najbliższego celu (owocu lub żaby),
+     * z omijaniem przeszkód i kolizji.
+     *
+     * @param ai wąż AI
+     * @param other drugi wąż AI
+     */
     private void updateAISnake(Snake ai, Snake other) {
         if (!ai.isAlive()) return;
         Point head = ai.getTail().getFirst();
@@ -287,6 +392,14 @@ public class Game {
         }
     }
 
+    /**
+     * Sprawdza, czy punkt jest bezpieczny do poruszenia się przez węża AI.
+     *
+     * @param p punkt do sprawdzenia
+     * @param current aktualny wąż
+     * @param other inny wąż AI
+     * @return true jeśli punkt jest wolny i bezpieczny
+     */
     private boolean isSafe(Point p, Snake current, Snake other) {
         if (p.x < 0 || p.y < 0 || p.x >= board.getCellCount() || p.y >= board.getCellCount())
             return false;
@@ -307,16 +420,31 @@ public class Game {
         return true;
     }
 
+    /**
+     * Sprawdza, czy gracz powinien się poruszyć (na podstawie poziomu trudności).
+     *
+     * @return true, jeśli nadszedł czas na ruch
+     */
     public boolean shouldMove() {
         return snake.moveTime(delayForLevel());
     }
 
+    /**
+     * Zwraca opóźnienie ruchu w zależności od poziomu trudności.
+     *
+     * @return czas opóźnienia w sekundach
+     */
     private float delayForLevel() {
         return switch (gameLevel) {
             case EASY, HARD, MEDIUM -> 0.1f;
         };
     }
 
+    /**
+     * Obsługuje zdarzenia naciśnięcia klawiszy – zmiana kierunku ruchu i powrót do MENU.
+     *
+     * @param keyCode kod naciśniętego klawisza
+     */
     public void onKeyPress(int keyCode) {
         if (gameScreen == GameScreen.GAME) {
             if (keyCode == KeyEvent.VK_UP) snake.moveDirection(Direction.UP);
@@ -333,7 +461,12 @@ public class Game {
         }
     }
 
-
+    /**
+     * Rysuje wynik gracza na pasku poniżej planszy.
+     *
+     * @param g kontekst graficzny
+     * @param panelWidth szerokość panelu
+     */
     private void drawScore(Graphics2D g, int panelWidth) {
         g.setColor(Color.BLACK);
         g.setFont(new Font("Arial", Font.BOLD, 32));
@@ -344,6 +477,13 @@ public class Game {
         g.drawString(scoreText, x, y);
     }
 
+    /**
+     * Rysuje ekran menu z opcjami wyboru poziomu trudności i scoreboardu.
+     *
+     * @param g kontekst graficzny
+     * @param panelWidth szerokość panelu
+     * @param panelHeight wysokość panelu
+     */
     private void drawMenu(Graphics2D g, int panelWidth, int panelHeight) {
         g.setColor(Color.YELLOW);
         g.fillRect(0, 0, panelWidth, panelHeight);
@@ -398,7 +538,9 @@ public class Game {
         }
     }
 
-
+    /**
+     * Resetuje grę po zakończeniu – zapisuje wynik, czyści stany węży, przeszkód, żaby i jedzenia.
+     */
     private void resetGame() {
         scoreDataBase.addScore(score, gameLevel);
 
@@ -412,6 +554,13 @@ public class Game {
         gameScreen = GameScreen.MENU;
     }
 
+    /**
+     * Obsługuje kliknięcia myszy w menu oraz w widoku scoreboard.
+     *
+     * @param x współrzędna X kliknięcia
+     * @param y współrzędna Y kliknięcia
+     * @param panelWidth szerokość panelu
+     */
     public void onMouseClick(int x, int y, int panelWidth) {
         if (gameScreen == GameScreen.MENU
                 && hoveredMenuIndex != -1 && menuYPositions.length > hoveredMenuIndex) {
@@ -485,7 +634,13 @@ public class Game {
         }
     }
 
-
+    /**
+     * Obsługuje ruch myszy nad elementami menu oraz nad przyciskiem powrotu w scoreboardzie.
+     *
+     * @param mouseX współrzędna X kursora
+     * @param mouseY współrzędna Y kursora
+     * @param panelWidth szerokość panelu
+     */
     public void onMouseMove(int mouseX, int mouseY, int panelWidth) {
         if (gameScreen == GameScreen.MENU
                 && menuYPositions.length > 0) {
@@ -531,6 +686,14 @@ public class Game {
         }
     }
 
+    /**
+     * Rysuje ekran wyników (scoreboard) z przewijalną listą wyników.
+     * Zawiera kolumny: data, wynik, poziom trudności.
+     *
+     * @param g kontekst graficzny
+     * @param panelWidth szerokość panelu
+     * @param panelHeight wysokość panelu
+     */
     private void drawScoreBoard(Graphics2D g, int panelWidth, int panelHeight) {
         g.setColor(Color.YELLOW);
         g.fillRect(0, 0, panelWidth, panelHeight);
@@ -621,10 +784,11 @@ public class Game {
         }
     }
 
-
-
-
-
+    /**
+     * Modyfikuje aktualne przesunięcie listy wyników w scoreboardzie o podaną wartość.
+     *
+     * @param delta liczba linii do przesunięcia (np. -1 lub +1)
+     */
     public void adjustScrollOffset(int delta) {
         // Dynamiczne wyliczenie linii — zgodne z drawScoreBoard
         Font scoreFont = new Font("Monospaced", Font.PLAIN, 20);
@@ -641,10 +805,23 @@ public class Game {
         scrollOffset = Math.max(0, Math.min(scrollOffset + delta, maxOffset));
     }
 
+    /**
+     * Zwraca aktualny stan widoku gry.
+     *
+     * @return bieżący ekran gry
+     */
     public GameScreen getGameScreen() {
         return gameScreen;
     }
 
+    /**
+     * Rozpoczyna przeciąganie scrollbara, jeśli kliknięto bezpośrednio w jego obszar.
+     *
+     * @param mouseX współrzędna X kursora
+     * @param mouseY współrzędna Y kursora
+     * @param panelWidth szerokość panelu
+     * @param panelHeight wysokość panelu
+     */
     public void startDraggingScrollbar(int mouseX, int mouseY, int panelWidth, int panelHeight) {
         int scrollbarX = panelWidth - 30;
         int scrollbarWidth = 10;
@@ -679,6 +856,12 @@ public class Game {
         }
     }
 
+    /**
+     * Aktualizuje pozycję scrollbara podczas przeciągania.
+     *
+     * @param mouseY aktualna pozycja Y myszy
+     * @param panelHeight wysokość panelu
+     */
     public void dragScrollbar(int mouseY, int panelHeight) {
         if (!draggingThumb) return;
 
@@ -696,20 +879,42 @@ public class Game {
         scrollOffset = Math.round(scrollRatio * maxOffset);
     }
 
+    /**
+     * Oblicza pozycję górnego marginesu widocznego obszaru scoreboardu.
+     *
+     * @param panelHeight wysokość panelu
+     * @return wartość Y początku listy
+     */
     private int computeYStart(int panelHeight) {
         FontMetrics fmTitle = new Canvas().getFontMetrics(new Font("Arial", Font.BOLD, 50));
         return 60 + fmTitle.getHeight() + 40;
     }
 
+    /**
+     * Oblicza pozycję dolnego marginesu widocznego obszaru scoreboardu.
+     *
+     * @param panelHeight wysokość panelu
+     * @return wartość Y końca listy
+     */
     private int computeYEnd(int panelHeight) {
         return panelHeight - 100;
     }
 
+    /**
+     * Oblicza maksymalną liczbę linii, które mieszczą się w scoreboardzie.
+     *
+     * @param panelHeight wysokość panelu
+     * @return liczba widocznych wyników na ekranie
+     */
     private int getMaxVisibleLines(int panelHeight) {
         FontMetrics fm = new Canvas().getFontMetrics(new Font("Monospaced", Font.PLAIN, 20));
         int lineHeight = fm.getHeight();
         return (computeYEnd(panelHeight) - computeYStart(panelHeight)) / lineHeight;
     }
+
+    /**
+     * Kończy przeciąganie scrollbara.
+     */
     public void stopDraggingScrollbar() {
         draggingThumb = false;
     }

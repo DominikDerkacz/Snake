@@ -101,7 +101,6 @@ public class Game {
         hoveredBackButton = false;
 
     }
-
     /**
      * Rysuje aktualny stan gry na ekranie. W zależności od stanu gry wywołuje odpowiednie metody rysujące.
      *
